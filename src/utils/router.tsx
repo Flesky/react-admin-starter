@@ -1,32 +1,28 @@
 import { createBrowserRouter } from 'react-router-dom'
-import { IconSettings } from '@tabler/icons-react'
+import { IconDatabase, IconHome } from '@tabler/icons-react'
 import Index from '../pages/app'
 import AppLayout from '../pages/app/_layout.tsx'
 import type { NavLinkItem } from '../pages/app/_layout.tsx'
-import Table from '@/pages/app/table.tsx'
+import Server from '@/pages/app/table/server.tsx'
+import Client from '@/pages/app/table/client.tsx'
 
 const navbarLinks: NavLinkItem[] = [
   {
     label: 'Home',
-    icon: IconSettings,
-    to: '/',
+    icon: IconHome,
+    link: '/',
   },
   {
     label: 'Table',
-    icon: IconSettings,
-    to: '/table',
-  },
-  {
-    label: 'Sample item',
-    icon: IconSettings,
+    icon: IconDatabase,
     children: [
       {
-        label: 'Sub item',
-        to: '/sub-item',
+        label: 'Client data',
+        link: '/table/client',
       },
       {
-        label: 'Sub item 2',
-        to: '/sub-item-2',
+        label: 'Server data',
+        link: '/table/server',
       },
     ],
   },
@@ -43,7 +39,16 @@ const router = createBrowserRouter([
       },
       {
         path: 'table',
-        element: <Table />,
+        children: [
+          {
+            path: 'client',
+            element: <Client />,
+          },
+          {
+            path: 'server',
+            element: <Server />,
+          },
+        ],
       },
     ],
   },

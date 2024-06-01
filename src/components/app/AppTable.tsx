@@ -8,16 +8,30 @@ import {
 } from '@tanstack/react-table'
 import type {
   ColumnDef,
-
-  SortingState,
 } from '@tanstack/react-table'
 
-import { ActionIcon, Box, Button, Card, CloseButton, Group, LoadingOverlay, Modal, ScrollArea, Select, Stack, Table, Text, TextInput, UnstyledButton } from '@mantine/core'
+import {
+  ActionIcon,
+  Box,
+  Button,
+  Card,
+  Checkbox,
+  CloseButton,
+  Group,
+  LoadingOverlay,
+  Modal,
+  ScrollArea,
+  Select,
+  Stack,
+  Table,
+  Text,
+  TextInput,
+} from '@mantine/core'
 
 import {
   IconArrowNarrowDown,
   IconArrowNarrowUp,
-  IconArrowsVertical,
+  IconArrowsUpDown,
   IconChevronLeft,
   IconChevronRight,
   IconDatabaseOff,
@@ -28,6 +42,7 @@ import {
 } from '@tabler/icons-react'
 import { useState } from 'react'
 import { useDebouncedValue, useDisclosure, useListState } from '@mantine/hooks'
+import type { TableProvider } from '@/hooks/useTableProvider.ts'
 
 type RowData = Record<string, any>
 
@@ -36,9 +51,7 @@ interface Props<T extends RowData> {
   columns: ColumnDef<T, any>[]
   isLoading?: boolean
 
-  params?: {
-    totalItems: number
-  }
+  provider?: TableProvider
   // tableProps?: Omit<TableProps, 'data' | 'children'>
 }
 
@@ -59,16 +72,13 @@ interface ColumnFilter {
 
 export default function AppNewTable<T extends RowData>(props: Props<T>) {
   // eslint-disable-next-line react/no-unstable-default-props
-  const { data = [], columns, isLoading, params } = props
+  const { data = [], columns, isLoading, provider } = props
 
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
-  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
-  const [sorting, setSorting] = useState<SortingState>([])
   const [globalFilterText, setGlobalFilterText] = useState('')
   const [globalFilter] = useDebouncedValue(globalFilterText, 300, { leading: true })
 
   const [filtersOpened, { open: openFilters, close: closeFilters }] = useDisclosure()
-  const [settingsOpened, { open: openSettings, close: closeSettings }] = useDisclosure()
+  const [settingsOpened, { close: closeSettings }] = useDisclosure()
 
   const [filters, { append, remove, setItemProp, setState: setFilters }] = useListState<ColumnFilter>([])
 
@@ -100,18 +110,44 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
 
   const table = useReactTable<T>({
     data,
-    columns,
+    columns: provider?.rowSelection
+      ? [
+          {
+            id: 'selection',
+            // TODO: <div> cannot appear as a descendant of <p>.
+            header: ({ table }) => (
+              <Checkbox
+                aria-label="Select row"
+                checked={table.getIsAllRowsSelected()}
+                indeterminate={table.getIsSomeRowsSelected()}
+                onChange={table.getToggleAllRowsSelectedHandler()}
+              />
+            ),
+            cell: ({ row }) => (
+              <Checkbox
+                checked={row.getIsSelected()}
+                disabled={!row.getCanSelect()}
+                onChange={row.getToggleSelectedHandler()}
+              />
+            ),
+          },
+          ...columns,
+        ]
+      : columns,
+    getRowId: row => row.id,
+
+    // This convoluted way of passing the state is how it works. Don't ask me.
     state: {
-      pagination,
-      rowSelection,
-      sorting,
+      ...(provider?.pagination && { pagination: provider.pagination }),
+      rowSelection: provider?.rowSelection,
+      ...(provider?.sorting && { sorting: provider.sorting }),
       globalFilter,
     },
-    getRowId: row => row.id,
-    onPaginationChange: setPagination,
-    onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilterText,
+
+    ...(provider?.pagination && { onPaginationChange: provider.setPagination }),
+    onRowSelectionChange: provider?.setRowSelection,
+    ...(provider?.sorting && { onSortingChange: provider.setSorting }),
+
     globalFilterFn: 'includesString',
     enableGlobalFilter: true,
 
@@ -120,10 +156,12 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
 
-    debugTable: true,
+    manualPagination: !!provider?.pagination,
+    manualSorting: !!provider?.sorting,
+    rowCount: provider?.rowCount,
   })
 
-  const [highlightedColumn, setHighlightedColumn] = useState<string>()
+  // const [highlightedColumn, setHighlightedColumn] = useState<string>()
 
   return (
     <>
@@ -209,11 +247,9 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
       </Modal>
 
       <Stack
-        // bg="#f9f9f9"
         h="100%"
-        pos="relative"
+        p="lg"
       >
-        <LoadingOverlay visible={isLoading} zIndex={20} loaderProps={{ type: 'bars' }} />
 
         <Group
           justify="space-between"
@@ -234,7 +270,16 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
               : <IconSearch size={16} />}
           />
 
-          <Group gap="xs">
+          <Group>
+            {/* <Transition */}
+            {/*  mounted={!!isLoading} */}
+            {/*  transition="fade" */}
+            {/*  duration={200} */}
+            {/*  timingFunction="ease" */}
+            {/* > */}
+            {/*  {styles => */}
+            {/*    <Loader style={styles} color="blue" size="sm" />} */}
+            {/* </Transition> */}
             <Button
               onClick={openFilters}
               variant="default"
@@ -254,7 +299,11 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
           </Group>
         </Group>
 
-        <Card withBorder p={0}>
+        <Card
+          withBorder
+          p={0}
+        >
+          <LoadingOverlay visible={isLoading} zIndex={20} />
           {/* {!!table.getSelectedRowModel().rows.length && ( */}
           {/*  <Card className="rounded-b-none border-b"> */}
           {/*    <Group justify="space-between"> */}
@@ -271,7 +320,6 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
                 zIndex: 10,
               },
             }}
-            className={!isLoading ? 'shrink-0' : 'h-full'}
           >
             <Table
               miw="600px"
@@ -283,9 +331,7 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
               stickyHeader
               highlightOnHover
             >
-              <Table.Thead
-                onMouseLeave={() => setHighlightedColumn(undefined)}
-              >
+              <Table.Thead>
                 {table.getHeaderGroups().map(headerGroup => (
                   <Table.Tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {
@@ -294,48 +340,68 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
                       return header.isPlaceholder
                         ? <Table.Th key={header.id} colSpan={header.colSpan} />
                         : (
-                          <UnstyledButton
+                          <Table.Th
+                            fw={500}
                             key={header.id}
-                            component={Table.Th}
-                            bg={(highlightedColumn === header.id || header.column.getIsSorted()) ? 'gray.2' : undefined}
-                            onMouseOver={() => setHighlightedColumn(header.id)}
-                            onClick={isDataColumn ? header.column.getToggleSortingHandler() : undefined}
-                            colSpan={header.colSpan}
                           >
-                            <Stack>
-                              <Group justify="space-between" wrap="nowrap">
-                                <Text size="sm" fw={500} className="select-none text-nowrap" c="dark.3">
-                                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                                </Text>
-                                {
-                                  isDataColumn && (
-                                    <Group wrap="nowrap" gap={0}>
-                                      {/* <ActionIcon */}
-                                      {/*  className={highlightedColumn === header.id ? 'visible' : 'invisible'} */}
-                                      {/*  variant="subtle" */}
-                                      {/*  size="sm" */}
-                                      {/*  color="dark.5" */}
-                                      {/*  onClick={() => {}} */}
-                                      {/* > */}
-                                      {/*  <IconFilter size={16} /> */}
-                                      {/* </ActionIcon> */}
-                                      <ActionIcon
-                                        className={highlightedColumn === header.id || header.column.getIsSorted() ? 'visible' : 'invisible'}
-                                        variant="subtle"
-                                        size="sm"
-                                        color="dark.5"
-                                      >
-                                        {{
-                                          asc: <IconArrowNarrowUp size={16} />,
-                                          desc: <IconArrowNarrowDown size={16} />,
-                                        }[header.column.getIsSorted() as string] || <IconArrowsVertical size={16} />}
-                                      </ActionIcon>
-                                    </Group>
-                                  )
-                                }
-                              </Group>
-                            </Stack>
-                          </UnstyledButton>
+                            <Group w="full" wrap="nowrap" justify="between">
+                              {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                              {header.column.getCanSort()
+                              && (
+                                <ActionIcon
+                                  onClick={header.column.getToggleSortingHandler()}
+                                  color="dimmed"
+                                  size="md"
+                                  variant={header.column.getIsSorted() ? 'light' : 'subtle'}
+                                >
+                                  {{ asc: <IconArrowNarrowUp size={16} />, desc: <IconArrowNarrowDown size={16} /> }[header.column.getIsSorted() as string] || <IconArrowsUpDown size={16} />}
+                                </ActionIcon>
+                              )}
+                            </Group>
+                          </Table.Th>
+                          // <UnstyledButton
+                          //   key={header.id}
+                          //   component={Table.Th}
+                          //   bg={(highlightedColumn === header.id || header.column.getIsSorted()) ? 'gray.2' : undefined}
+                          //   onMouseOver={() => setHighlightedColumn(header.id)}
+                          //   onClick={isDataColumn ? header.column.getToggleSortingHandler() : undefined}
+                          //   colSpan={header.colSpan}
+                          //   tabIndex={0}
+                          // >
+                          //   <Stack>
+                          //     <Group justify="space-between" wrap="nowrap">
+                          //       <Text size="sm" fw={500} className="select-none text-nowrap" c="dark.3">
+                          //         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                          //       </Text>
+                          //       {
+                          //         isDataColumn && (
+                          //           <Group wrap="nowrap" gap={0}>
+                          //             {/* <ActionIcon */}
+                          //             {/*  className={highlightedColumn === header.id ? 'visible' : 'invisible'} */}
+                          //             {/*  variant="subtle" */}
+                          //             {/*  size="sm" */}
+                          //             {/*  color="dark.5" */}
+                          //             {/*  onClick={() => {}} */}
+                          //             {/* > */}
+                          //             {/*  <IconFilter size={16} /> */}
+                          //             {/* </ActionIcon> */}
+                          //             <ActionIcon
+                          //               className={highlightedColumn === header.id || header.column.getIsSorted() ? 'visible' : 'invisible'}
+                          //               variant="subtle"
+                          //               size="sm"
+                          //               color="dark.5"
+                          //             >
+                          //               {{
+                          //                 asc: <IconArrowNarrowUp size={16} />,
+                          //                 desc: <IconArrowNarrowDown size={16} />,
+                          //               }[header.column.getIsSorted() as string] || <IconArrowsVertical size={16} />}
+                          //             </ActionIcon>
+                          //           </Group>
+                          //         )
+                          //       }
+                          //     </Group>
+                          //   </Stack>
+                          // </UnstyledButton>
                           )
                     })}
                   </Table.Tr>
@@ -345,13 +411,6 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
               <Table.Tbody>
                 {table.getRowModel().rows.map(row => (
                   <Table.Tr key={row.id}>
-                    {/* <Table.Td key={`${row.id}_selection`}> */}
-                    {/*  <Checkbox */}
-                    {/*    checked={row.getIsSelected()} */}
-                    {/*    disabled={!row.getCanSelect()} */}
-                    {/*    onChange={row.getToggleSelectedHandler()} */}
-                    {/*  /> */}
-                    {/* </Table.Td> */}
                     {row.getVisibleCells().map(cell => (
                       <Table.Td key={cell.id}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -362,31 +421,37 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
               </Table.Tbody>
             </Table>
           </ScrollArea>
+          {/* TODO: Fix empty state for filtered text */}
+          {
+            !data.length
+            && (
+              <Stack gap="xs" mih={150} m="lg" justify="center" align="center">
+                <Box
+                  bg="gray.2"
+                  style={{
+                    borderRadius: '100%',
+                  }}
+                  p="xs"
+                >
+                  {table.getState().globalFilter && !!table.getPreFilteredRowModel()
+                    ? <IconFilterExclamation color="var(--mantine-color-dimmed)" />
+                    : <IconDatabaseOff color="var(--mantine-color-dimmed)" />}
+                </Box>
+                <Text size="sm" c="dimmed">
+                  {/* eslint-disable-next-line style/jsx-one-expression-per-line */}
+                  No records { table.getState().globalFilter && data && !!table.getPreFilteredRowModel() ? 'matched' : ''}
+                </Text>
+              </Stack>
+            )
+          }
 
-          {!table.getPageCount() && !isLoading
-          && (
-            <Stack gap="xs" mih={150} m="lg" justify="center" align="center" className="grow">
-              <Box
-                bg="gray.2"
-                style={{
-                  borderRadius: '100%',
-                }}
-                p="xs"
-              >
-                {table.getState().globalFilter && !!table.getPreFilteredRowModel()
-                  ? <IconFilterExclamation color="var(--mantine-color-dimmed)" />
-                  : <IconDatabaseOff color="var(--mantine-color-dimmed)" />}
-              </Box>
-              <Text size="sm" c="dimmed">
-                {/* eslint-disable-next-line style/jsx-one-expression-per-line */}
-                No records { table.getState().globalFilter && !!table.getPreFilteredRowModel() ? 'matched' : ''}
-              </Text>
-            </Stack>
-          )}
+          {/* {!table.getPageCount() && !isLoading */}
+          {/* && } */}
         </Card>
 
         <Group
           justify="space-between"
+          className="select-none"
         >
           <Group gap="xs">
             <Select
@@ -400,7 +465,7 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
                   fontSize: 'var(--mantine-font-size-sm)',
                 },
               }}
-              value={String(pagination.pageSize)}
+              value={String(table.getState().pagination?.pageSize)}
               onChange={pageSize => table.setPageSize(Number(pageSize))}
               data={[
                 { value: '10', label: '10 / page' },
@@ -414,8 +479,9 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
           </Group>
 
           <Text size="sm">
+            {/* TODO: Do some magic with table.getRowCount(). Previously Math.min(x, table.getRowCount()) */}
             {/* eslint-disable-next-line style/jsx-one-expression-per-line */}
-            {Math.min(pagination.pageIndex * pagination.pageSize + 1, table.getRowCount())} — {Math.min(pagination.pageIndex * pagination.pageSize + table.getPaginationRowModel().rows.length, table.getRowCount())} of {table.getFilteredRowModel().rows.length} items
+            {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} — {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + table.getPaginationRowModel().rows.length} of {table.getRowCount()} items
           </Text>
 
           <Group gap="xs">
@@ -424,7 +490,7 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
                 value: String(i + 1),
                 label: String(i + 1),
               }))}
-              value={String(pagination.pageIndex + 1)}
+              value={String(table.getState().pagination.pageIndex + 1)}
               onChange={page => table.setPageIndex(Number(page) - 1)}
               w={80}
               size="xs"
@@ -445,7 +511,6 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
               of {table.getPageCount()} page{table.getPageCount() === 1 ? '' : 's'}
             </Text>
             <Group gap={4}>
-
               <ActionIcon
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}

@@ -8,6 +8,12 @@
 
     /* Bundler mode */
     "moduleResolution": "bundler",
+
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
 
@@ -18,13 +24,7 @@
     "noUnusedParameters": true,
     "noEmit": true,
     "isolatedModules": true,
-    "skipLibCheck": true,
-
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    }
+    "skipLibCheck": true
   },
   "references": [{ "path": "./tsconfig.node.json" }],
   "include": ["src"]
