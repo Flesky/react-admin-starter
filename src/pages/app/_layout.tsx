@@ -91,6 +91,7 @@ export default function AppLayout() {
         height: 60,
       }}
       layout="alt"
+      padding="lg"
     >
       <AppShell.Navbar withBorder>
         <AppShell.Section>

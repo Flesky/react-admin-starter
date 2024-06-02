@@ -110,7 +110,7 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
 
   const table = useReactTable<T>({
     data,
-    columns: provider?.rowSelection
+    columns: provider?.onRowSelectionChange
       ? [
           {
             id: 'selection',
@@ -136,18 +136,6 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
       : columns,
     getRowId: row => row.id,
 
-    // This convoluted way of passing the state is how it works. Don't ask me.
-    state: {
-      ...(provider?.pagination && { pagination: provider.pagination }),
-      rowSelection: provider?.rowSelection,
-      ...(provider?.sorting && { sorting: provider.sorting }),
-      globalFilter,
-    },
-
-    ...(provider?.pagination && { onPaginationChange: provider.setPagination }),
-    onRowSelectionChange: provider?.setRowSelection,
-    ...(provider?.sorting && { onSortingChange: provider.setSorting }),
-
     globalFilterFn: 'includesString',
     enableGlobalFilter: true,
 
@@ -156,9 +144,14 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
 
-    manualPagination: !!provider?.pagination,
-    manualSorting: !!provider?.sorting,
-    rowCount: provider?.rowCount,
+    initialState: {
+      globalFilter: '',
+    },
+
+    ...provider,
+    state: {
+      ...provider?.state,
+    },
   })
 
   // const [highlightedColumn, setHighlightedColumn] = useState<string>()
@@ -248,7 +241,6 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
 
       <Stack
         h="100%"
-        p="lg"
       >
 
         <Group
@@ -256,30 +248,20 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
           gap="xs"
         >
           <TextInput
-            value={globalFilterText}
-            onChange={e => setGlobalFilterText(e.target.value)}
+            onChange={e => table.setGlobalFilter(e.target.value)}
             placeholder="Quick search"
             rightSectionPointerEvents="all"
             rightSection={globalFilterText
               ? (
                 <CloseButton
                   aria-label="Clear input"
-                  onClick={() => setGlobalFilterText('')}
+                  onClick={() => table.resetGlobalFilter()}
                 />
                 )
               : <IconSearch size={16} />}
           />
 
           <Group>
-            {/* <Transition */}
-            {/*  mounted={!!isLoading} */}
-            {/*  transition="fade" */}
-            {/*  duration={200} */}
-            {/*  timingFunction="ease" */}
-            {/* > */}
-            {/*  {styles => */}
-            {/*    <Loader style={styles} color="blue" size="sm" />} */}
-            {/* </Transition> */}
             <Button
               onClick={openFilters}
               variant="default"
@@ -336,7 +318,7 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
                   <Table.Tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {
                       /* TODO: Don't use buttons for parent columns */
-                      const isDataColumn = header.column.getCanSort()
+                      // const isDataColumn = header.column.getCanSort()
                       return header.isPlaceholder
                         ? <Table.Th key={header.id} colSpan={header.colSpan} />
                         : (
@@ -423,7 +405,7 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
           </ScrollArea>
           {/* TODO: Fix empty state for filtered text */}
           {
-            !data.length
+            !table.getFilteredRowModel().rows.length
             && (
               <Stack gap="xs" mih={150} m="lg" justify="center" align="center">
                 <Box
