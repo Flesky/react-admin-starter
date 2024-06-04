@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { faker } from '@faker-js/faker'
-import AppHeader from '../../../components/app/AppHeader.tsx'
+import AppPageContainer from '../../../components/app/AppPageContainer.tsx'
 import AppNewTable from '@/components/app/AppTable.tsx'
 import useTableProvider from '@/hooks/useTableProvider.ts'
 
@@ -34,7 +34,7 @@ export default function Client() {
 
   return (
     <>
-      <AppHeader title="Client table" />
+      <AppPageContainer title="Client table" />
       <AppNewTable
         data={data?.records}
         provider={tableProvider}

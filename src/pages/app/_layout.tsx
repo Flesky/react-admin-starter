@@ -73,7 +73,7 @@ function renderNavItem(item: NavLinkItem | NavLinkChild, pathname: string) {
 }
 
 export default function AppLayout() {
-  const [isOpenMobile, isOpenDesktop, toggleMobile] = useNavbarStore(state => [state.isOpenMobile, state.isOpenDesktop, state.toggleMobile])
+  const [isOpenMobile, isOpenDesktop, toggleMobile, toggleDesktop] = useNavbarStore(state => [state.isOpenMobile, state.isOpenDesktop, state.toggleMobile, state.toggleDesktop])
   const { pathname } = useLocation()
 
   const links = useMemo(() => navbarLinks.map(item => renderNavItem(item, pathname)), [pathname])
@@ -86,16 +86,15 @@ export default function AppLayout() {
         width: 300,
 
       }}
-      withBorder={false}
       header={{
         height: 60,
       }}
       layout="alt"
       padding="lg"
     >
-      <AppShell.Navbar withBorder>
+      <AppShell.Navbar>
         <AppShell.Section>
-          <Box bg="orange.4" w="100%" p="md">
+          <Box bg="orange.5" w="100%" p="md">
             <Text size="xl" fw={500}>react-mantine-starter</Text>
           </Box>
           <Group p="md" justify="end" hiddenFrom="md">
@@ -107,10 +106,19 @@ export default function AppLayout() {
             {links}
           </Stack>
         </AppShell.Section>
-        <AppShell.Section>
-          Footer here
-        </AppShell.Section>
+        {/* <AppShell.Section> */}
+        {/*  Footer here */}
+        {/* </AppShell.Section> */}
       </AppShell.Navbar>
+
+      <AppShell.Header>
+        <Group h="100%" justify="space-between" px="md">
+          <Group>
+            <Burger hiddenFrom="md" onClick={toggleMobile} opened={isOpenMobile} size="sm" />
+            <Burger onClick={toggleDesktop} opened={isOpenDesktop} size="sm" visibleFrom="md" />
+          </Group>
+        </Group>
+      </AppShell.Header>
       <AppShell.Main className="h-dvh">
         <Outlet />
       </AppShell.Main>

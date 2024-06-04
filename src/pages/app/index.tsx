@@ -1,9 +1,9 @@
-import AppHeader from '../../components/app/AppHeader.tsx'
+import AppPageContainer from '../../components/app/AppPageContainer.tsx'
 
 export default function Index() {
   return (
     <>
-      <AppHeader title="a" />
+      <AppPageContainer title="a" />
       <h1>Hello, Vite!</h1>
     </>
   )
