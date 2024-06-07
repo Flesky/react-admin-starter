@@ -5,6 +5,7 @@ import AppLayout from '../pages/app/_layout.tsx'
 import type { NavLinkItem } from '../pages/app/_layout.tsx'
 import Server from '@/pages/app/table/server.tsx'
 import Client from '@/pages/app/table/client.tsx'
+import Advanced from '@/pages/app/table/advanced.tsx'
 
 const navbarLinks: NavLinkItem[] = [
   {
@@ -88,6 +89,10 @@ const router = createBrowserRouter([
           {
             path: 'server',
             element: <Server />,
+          },
+          {
+            path: 'advanced',
+            element: <Advanced />,
           },
         ],
       },

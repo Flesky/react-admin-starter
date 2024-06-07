@@ -3,7 +3,7 @@ import { Anchor, Avatar, Group, Text } from '@mantine/core'
 import AppPageContainer from '../../../components/app/AppPageContainer.tsx'
 import AppNewTable from '@/components/app/AppTable.tsx'
 import useTableProvider from '@/hooks/useTableProvider.ts'
-import { getServerTableData } from '@/utils/mock.ts'
+import { getUsers } from '@/utils/mock.ts'
 
 export default function Server() {
   const { tableProvider, tableQuery, sorting, pagination, globalFilter } = useTableProvider({
@@ -15,12 +15,12 @@ export default function Server() {
   })
 
   const { data, isFetching, isPlaceholderData } = useQuery({
-    queryKey: ['page', tableQuery],
+    queryKey: ['table/server', tableQuery],
     queryFn: async () => {
       await new Promise(resolve => setTimeout(resolve, 800 * Math.random()))
 
       const { pageIndex, pageSize } = pagination
-      return getServerTableData({
+      return getUsers({
         pageIndex,
         pageSize,
         sortColumn: sorting[0]?.id,
@@ -31,8 +31,7 @@ export default function Server() {
   })
 
   return (
-    <>
-      <AppPageContainer title="Server table" />
+    <AppPageContainer title="Server table">
       <AppNewTable
         data={data?.data}
         rowCount={data?.total}
@@ -59,8 +58,8 @@ export default function Server() {
             cell: ({ cell }) => (
               <Anchor
                 href={
-                `mailto:${cell.getValue()}`
-              }
+                    `mailto:${cell.getValue()}`
+                  }
                 size="sm"
                 c="blue"
               >
@@ -68,17 +67,8 @@ export default function Server() {
               </Anchor>
             ),
           },
-          {
-            header: 'Birthdate',
-            accessorKey: 'birthdate',
-            cell: ({ cell }) => new Date(cell.getValue()).toLocaleDateString(),
-          },
-          {
-            header: 'Address',
-            accessorKey: 'address',
-          },
         ]}
       />
-    </>
+    </AppPageContainer>
   )
 }

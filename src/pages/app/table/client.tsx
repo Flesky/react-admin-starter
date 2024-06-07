@@ -19,7 +19,7 @@ const users = faker.helpers.multiple(createRandomUser, {
 
 export default function Client() {
   const { rowSelection, tableProvider } = useTableProvider({
-    rowSelection: true,
+    rowSelection: 'single',
   })
 
   const { data, isPending } = useQuery({
@@ -33,8 +33,7 @@ export default function Client() {
   })
 
   return (
-    <>
-      <AppPageContainer title="Client table" />
+    <AppPageContainer title="Client table">
       <AppNewTable
         data={data?.records}
         provider={tableProvider}
@@ -58,6 +57,6 @@ export default function Client() {
         ]}
         isLoading={isPending}
       />
-    </>
+    </AppPageContainer>
   )
 }

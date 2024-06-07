@@ -1,16 +1,13 @@
 import type { PaginationState, RowSelectionState, SortingState, TableOptions } from '@tanstack/react-table'
 import { useEffect, useState } from 'react'
 
-/*
-  Adding "manual" to the features object will enable server side mode, which requires the user to handle pagination, sorting, and filtering.
- */
 interface TableFeatures {
   manual?: {
     pagination?: boolean
     sorting?: boolean
     globalFilter?: boolean
   }
-  rowSelection?: boolean
+  rowSelection?: 'single' | 'multiple'
 }
 
 export type TableProvider = Partial<Omit<TableOptions<any>, 'columns' | 'data' | 'getCoreRowModel'>> & { features: TableFeatures }
@@ -20,7 +17,7 @@ export type TableHook<F extends TableFeatures> =
   (F extends { manual: { pagination: true } } ? { pagination: PaginationState } : object) &
   (F extends { manual: { sorting: true } } ? { sorting: SortingState } : object) &
   (F extends { manual: { globalFilter: true } } ? { globalFilter: string } : object) &
-  (F extends { rowSelection: true } ? { rowSelection: RowSelectionState } : object) &
+  (F extends { rowSelection: string } ? { rowSelection: RowSelectionState } : object) &
   { tableProvider: TableProvider }
 
 export default function useTableProvider<F extends TableFeatures>(features: F) {
@@ -82,7 +79,7 @@ export default function useTableProvider<F extends TableFeatures>(features: F) {
         rowSelection,
       },
       onRowSelectionChange: setRowSelection,
-      enableMultiRowSelection: false,
+      enableMultiRowSelection: features.rowSelection === 'multiple',
     }
   }
 

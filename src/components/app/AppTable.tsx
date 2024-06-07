@@ -1,15 +1,5 @@
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table'
-import type {
-  ColumnDef,
-} from '@tanstack/react-table'
-
+import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import {
   ActionIcon,
   Box,
@@ -27,19 +17,8 @@ import {
   Text,
   TextInput,
 } from '@mantine/core'
-
-import {
-  IconArrowNarrowDown,
-  IconArrowNarrowUp,
-  IconArrowsUpDown,
-  IconChevronLeft,
-  IconChevronRight,
-  IconFilter,
-  IconFilterExclamation,
-  IconPlus,
-  IconSearch,
-} from '@tabler/icons-react'
-import { useState } from 'react'
+import { IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsUpDown, IconChevronLeft, IconChevronRight, IconFilter, IconFilterExclamation, IconPlus, IconSearch } from '@tabler/icons-react'
+import { useMemo, useState } from 'react'
 import { useDisclosure, useListState } from '@mantine/hooks'
 import type { TableProvider } from '@/hooks/useTableProvider.ts'
 
@@ -240,20 +219,11 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
           p={0}
         >
           <LoadingOverlay visible={isLoading} zIndex={20} />
-          {/* {!!table.getSelectedRowModel().rows.length && ( */}
-          {/*  <Card className="rounded-b-none border-b"> */}
-          {/*    <Group justify="space-between"> */}
-          {/*      <Text size="sm"> */}
-          {/*        {table.getSelectedRowModel().rows.length} */}
-          {/*      </Text> */}
-          {/*    </Group> */}
-          {/*  </Card> */}
-          {/* )} */}
 
           <ScrollArea
             styles={{
               scrollbar: {
-                zIndex: 10,
+                zIndex: 50,
               },
             }}
           >
@@ -267,18 +237,19 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
               stickyHeader
               highlightOnHover
             >
-              <Table.Thead>
+              <Table.Thead className="">
                 {table.getHeaderGroups().map(headerGroup => (
                   <Table.Tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {
                       /* TODO: Don't use buttons for parent columns */
-                      return header.isPlaceholder
-                        ? <Table.Th key={header.id} colSpan={header.colSpan} />
-                        : (
-                          <Table.Th
-                            fw={500}
-                            key={header.id}
-                          >
+                      return (
+                        <Table.Th
+                          fw={500}
+                          key={header.id}
+                          colSpan={header.colSpan}
+                          h={50}
+                        >
+                          {!header.isPlaceholder && (
                             <Group
                               w="full"
                               styles={{
@@ -290,7 +261,7 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
                               wrap="nowrap"
                               justify="between"
                             >
-                              {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                              {flexRender(header.column.columnDef.header, header.getContext())}
                               {header.column.getCanSort()
                               && (
                                 <ActionIcon
@@ -303,54 +274,13 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
                                 </ActionIcon>
                               )}
                             </Group>
-                          </Table.Th>
-                          // <UnstyledButton
-                          //   key={header.id}
-                          //   component={Table.Th}
-                          //   bg={(highlightedColumn === header.id || header.column.getIsSorted()) ? 'gray.2' : undefined}
-                          //   onMouseOver={() => setHighlightedColumn(header.id)}
-                          //   onClick={isDataColumn ? header.column.getToggleSortingHandler() : undefined}
-                          //   colSpan={header.colSpan}
-                          //   tabIndex={0}
-                          // >
-                          //   <Stack>
-                          //     <Group justify="space-between" wrap="nowrap">
-                          //       <Text size="sm" fw={500} className="select-none text-nowrap" c="dark.3">
-                          //         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                          //       </Text>
-                          //       {
-                          //         isDataColumn && (
-                          //           <Group wrap="nowrap" gap={0}>
-                          //             {/* <ActionIcon */}
-                          //             {/*  className={highlightedColumn === header.id ? 'visible' : 'invisible'} */}
-                          //             {/*  variant="subtle" */}
-                          //             {/*  size="sm" */}
-                          //             {/*  color="dark.5" */}
-                          //             {/*  onClick={() => {}} */}
-                          //             {/* > */}
-                          //             {/*  <IconFilter size={16} /> */}
-                          //             {/* </ActionIcon> */}
-                          //             <ActionIcon
-                          //               className={highlightedColumn === header.id || header.column.getIsSorted() ? 'visible' : 'invisible'}
-                          //               variant="subtle"
-                          //               size="sm"
-                          //               color="dark.5"
-                          //             >
-                          //               {{
-                          //                 asc: <IconArrowNarrowUp size={16} />,
-                          //                 desc: <IconArrowNarrowDown size={16} />,
-                          //               }[header.column.getIsSorted() as string] || <IconArrowsVertical size={16} />}
-                          //             </ActionIcon>
-                          //           </Group>
-                          //         )
-                          //       }
-                          //     </Group>
-                          //   </Stack>
-                          // </UnstyledButton>
-                          )
+                          )}
+                        </Table.Th>
+                      )
                     })}
                   </Table.Tr>
                 ))}
+
               </Table.Thead>
 
               <Table.Tbody>
