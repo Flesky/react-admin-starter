@@ -1,47 +1,46 @@
 import type { PaginationState, RowSelectionState, SortingState, TableOptions } from '@tanstack/react-table'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
-interface TableFeatures {
+interface TableConfig {
   manual?: {
     pagination?: boolean
     sorting?: boolean
     globalFilter?: boolean
   }
   rowSelection?: 'single' | 'multiple'
+
+  initialState?: {
+    pagination?: {
+      pageIndex: number
+      pageSize: number
+    }
+    sorting?: SortingState
+    globalFilter?: string
+    rowSelection?: RowSelectionState
+  }
+
 }
 
-export type TableProvider = Partial<Omit<TableOptions<any>, 'columns' | 'data' | 'getCoreRowModel'>> & { features: TableFeatures }
+export type TableProvider = Partial<Omit<TableOptions<any>, 'columns' | 'data' | 'getCoreRowModel'>> & { features: TableConfig }
 
-export type TableHook<F extends TableFeatures> =
+export type TableHook<F extends TableConfig> =
   (F extends { manual: object } ? { tableQuery: TableOptions<any>['state'] } : object) &
   (F extends { manual: { pagination: true } } ? { pagination: PaginationState } : object) &
   (F extends { manual: { sorting: true } } ? { sorting: SortingState } : object) &
   (F extends { manual: { globalFilter: true } } ? { globalFilter: string } : object) &
-  (F extends { rowSelection: string } ? { rowSelection: RowSelectionState } : object) &
+  (F extends { rowSelection: 'single' | 'multiple' } ? { rowSelection: RowSelectionState } : object) &
   { tableProvider: TableProvider }
 
-export default function useTableProvider<F extends TableFeatures>(features: F) {
+export default function useTableProvider<F extends TableConfig>(features: F) {
+  const { initialState } = features
+
   const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
+    pageIndex: initialState?.pagination?.pageIndex ?? 0,
+    pageSize: initialState?.pagination?.pageSize ?? 10,
   })
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [sorting, setSorting] = useState<SortingState>([])
-
-  // Debounce the global filter for server-side data except for removing the filter and on first type to increase perceived performance
-  const [globalFilterRaw, setGlobalFilterRaw] = useState<string>('')
-  const [globalFilter, setGlobalFilter] = useState<string>('')
-  useEffect(() => {
-    if (globalFilterRaw === '')
-      return setGlobalFilter('')
-    else if (globalFilter === '')
-      return setGlobalFilter(globalFilterRaw)
-
-    const timeout = setTimeout(() => {
-      setGlobalFilter(globalFilterRaw)
-    }, 300)
-    return () => clearTimeout(timeout)
-  }, [globalFilter, globalFilterRaw])
+  const [globalFilter, setGlobalFilter] = useState<string>(initialState?.globalFilter ?? '')
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
   let tableProvider: TableProvider = { features }
   let tableQuery: TableOptions<any>['state']
@@ -56,7 +55,7 @@ export default function useTableProvider<F extends TableFeatures>(features: F) {
       },
       onPaginationChange: setPagination,
       onSortingChange: setSorting,
-      onGlobalFilterChange: setGlobalFilterRaw,
+      onGlobalFilterChange: setGlobalFilter,
       manualPagination: true,
       manualSorting: true,
       manualFiltering: true,

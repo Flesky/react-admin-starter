@@ -4,6 +4,7 @@ import { RouterProvider } from 'react-router-dom'
 import { MantineProvider } from '@mantine/core'
 import { QueryClient, QueryClientProvider, keepPreviousData } from '@tanstack/react-query'
 import { Notifications } from '@mantine/notifications'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { router } from '@/utils/router.tsx'
 import '@mantine/core/styles.css'
 import '@mantine/notifications/styles.css'
@@ -24,6 +25,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <QueryClientProvider client={queryClient}>
         <Notifications />
         <RouterProvider router={router} />
+        <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </MantineProvider>
   </React.StrictMode>,

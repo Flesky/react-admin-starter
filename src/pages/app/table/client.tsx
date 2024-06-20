@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { faker } from '@faker-js/faker'
 import AppPageContainer from '../../../components/app/AppPageContainer.tsx'
-import AppNewTable from '@/components/app/AppTable.tsx'
+import AppTable from '@/components/app/AppTable.tsx'
 import useTableProvider from '@/hooks/useTableProvider.ts'
 
 function createRandomUser() {
@@ -34,7 +34,7 @@ export default function Client() {
 
   return (
     <AppPageContainer title="Client table">
-      <AppNewTable
+      <AppTable
         data={data?.records}
         provider={tableProvider}
         columns={[

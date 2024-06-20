@@ -1,25 +1,7 @@
 import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
-import {
-  ActionIcon,
-  Box,
-  Button,
-  Card,
-  Checkbox,
-  CloseButton,
-  Group,
-  LoadingOverlay,
-  Modal,
-  ScrollArea,
-  Select,
-  Stack,
-  Table,
-  Text,
-  TextInput,
-} from '@mantine/core'
-import { IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsUpDown, IconChevronLeft, IconChevronRight, IconFilter, IconFilterExclamation, IconPlus, IconSearch } from '@tabler/icons-react'
-import { useMemo, useState } from 'react'
-import { useDisclosure, useListState } from '@mantine/hooks'
+import { ActionIcon, Box, Card, Checkbox, CloseButton, Group, LoadingOverlay, Radio, ScrollArea, Select, Stack, Table, Text, TextInput } from '@mantine/core'
+import { IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsUpDown, IconChevronLeft, IconChevronRight, IconFilterExclamation, IconSearch } from '@tabler/icons-react'
 import type { TableProvider } from '@/hooks/useTableProvider.ts'
 
 type RowData = Record<string, any>
@@ -33,43 +15,36 @@ interface Props<T extends RowData> {
   provider?: TableProvider
 }
 
-interface ColumnFilter {
-  key: string
-  mode: string
-  value: string
-}
-
-export default function AppNewTable<T extends RowData>(props: Props<T>) {
-  const { data, columns, isLoading, rowCount, provider } = props
-
-  const [filtersOpened, { open: openFilters, close: closeFilters }] = useDisclosure()
-  const [settingsOpened, { close: closeSettings }] = useDisclosure()
-
-  const [filters, { append, remove, setItemProp, setState: setFilters }] = useListState<ColumnFilter>([])
-
-  const [appliedFilters, setAppliedFilters] = useState<ColumnFilter[]>([])
-
+export default function AppTable<T extends RowData>({ data, columns, rowCount, isLoading, provider }: Props<T>) {
   const table = useReactTable<T>({
     data: data || [],
     columns: provider?.onRowSelectionChange
       ? [
           {
             id: 'selection',
-            header: ({ table }) => (
+            header: ({ table }) => table.options.enableMultiRowSelection && (
               <Checkbox
                 aria-label="Select row"
                 checked={table.getIsAllRowsSelected()}
                 indeterminate={table.getIsSomeRowsSelected()}
-                onChange={table.getToggleAllRowsSelectedHandler()}
+                onChange={table.getToggleAllPageRowsSelectedHandler()}
               />
             ),
-            cell: ({ row }) => (
-              <Checkbox
-                checked={row.getIsSelected()}
-                disabled={!row.getCanSelect()}
-                onChange={row.getToggleSelectedHandler()}
-              />
-            ),
+            cell: ({ table, row }) => table.options.enableMultiRowSelection
+              ? (
+                <Checkbox
+                  checked={row.getIsSelected()}
+                  disabled={!row.getCanSelect()}
+                  onChange={row.getToggleSelectedHandler()}
+                />
+                )
+              : (
+                <Radio
+                  checked={row.getIsSelected()}
+                  disabled={!row.getCanSelect()}
+                  onChange={row.getToggleSelectedHandler()}
+                />
+                ),
           },
           ...columns,
         ]
@@ -93,91 +68,9 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
 
   return (
     <>
-      <Modal size="lg" opened={filtersOpened} onClose={closeFilters} title="Filters">
-        <form>
-          <Stack gap="sm">
-            {
-              filters.map((filter, index) => (
-                <Group wrap="nowrap" key={index} gap="xs">
-                  <Select
-                    value={filter.key}
-                    onChange={key => setItemProp(index, 'key', String(key))}
-                    data={table.getAllColumns().map(column => ({
-                      value: column.id,
-                      label: String(column.columnDef.header),
-                    }))}
-                    placeholder="Column"
-                  />
-
-                  <Select
-                    value={filter.mode}
-                    onChange={mode => setItemProp(index, 'mode', String(mode))}
-                    data={[{
-                      value: 'contains',
-                      label: 'contains',
-                    },
-                    ]}
-                    placeholder="Mode"
-                  />
-
-                  <TextInput
-                    value={filter.value}
-                    onChange={e => setItemProp(index, 'value', e.target.value)}
-                    placeholder="Value"
-                  />
-
-                  <CloseButton
-                    aria-label="Remove filter"
-                    onClick={() => remove(index)}
-                  />
-                </Group>
-              ))
-            }
-
-            <Button
-              leftSection={<IconPlus size={16} />}
-              variant="default"
-              onClick={() => append({
-                key: '',
-                mode: '',
-                value: '',
-              })}
-            >
-              Add filter
-            </Button>
-
-            <Group mt="md" justify="space-between">
-              <Button
-                variant="default"
-                onClick={() => {
-                  setAppliedFilters([])
-                  setFilters([])
-                  closeFilters()
-                }}
-              >
-                Reset filters
-              </Button>
-              <Button onClick={
-                () => {
-                  setAppliedFilters(filters)
-                  closeFilters()
-                }
-              }
-              >
-                Apply filters
-              </Button>
-            </Group>
-          </Stack>
-        </form>
-      </Modal>
-
-      <Modal opened={settingsOpened} onClose={closeSettings} title="Settings">
-      </Modal>
-
       <Stack
         h="100%"
       >
-
         <Group
           justify="space-between"
           gap="xs"
@@ -185,6 +78,7 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
           {
             (table.options.enableGlobalFilter) && (
               <TextInput
+                value={table.getState().globalFilter}
                 onChange={e => table.setGlobalFilter(e.target.value)}
                 placeholder="Quick search"
                 rightSectionPointerEvents="all"
@@ -193,7 +87,11 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
                   ? (
                     <CloseButton
                       aria-label="Clear input"
-                      onClick={() => table.resetGlobalFilter()}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        // Set value to ''
+                        table.setGlobalFilter('')
+                      }}
                     />
                     )
                   : <IconSearch size={16} />}
@@ -201,23 +99,21 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
             )
           }
 
-          <Group>
-            <Button
-              onClick={openFilters}
-              variant="default"
-              leftSection={<IconFilter size={16} />}
-            >
-              {appliedFilters?.length
-                ? appliedFilters.length === 1 ? '1 filter' : `${appliedFilters.length} filters`
-                : 'Filters'}
-            </Button>
-          </Group>
         </Group>
 
-        <Card
-          withBorder
-          p={0}
-        >
+        {(table.getIsSomeRowsSelected() || table.getIsAllRowsSelected()) && (
+          <Card withBorder>
+            <Group justify="space-between">
+              <Text size="sm">
+                {Object.keys(table.getState().rowSelection).length}
+                {' '}
+                selected
+              </Text>
+            </Group>
+          </Card>
+        )}
+
+        <Card withBorder p={0}>
           <LoadingOverlay visible={isLoading} zIndex={20} />
 
           <ScrollArea
@@ -237,7 +133,7 @@ export default function AppNewTable<T extends RowData>(props: Props<T>) {
               stickyHeader
               highlightOnHover
             >
-              <Table.Thead className="">
+              <Table.Thead>
                 {table.getHeaderGroups().map(headerGroup => (
                   <Table.Tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {

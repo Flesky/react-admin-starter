@@ -1,18 +1,22 @@
 import { useQuery } from '@tanstack/react-query'
 import { Anchor, Avatar, Group, Text } from '@mantine/core'
 import AppPageContainer from '../../../components/app/AppPageContainer.tsx'
-import AppNewTable from '@/components/app/AppTable.tsx'
+import AppTable from '@/components/app/AppTable.tsx'
 import useTableProvider from '@/hooks/useTableProvider.ts'
 import { getDetailedUsers } from '@/utils/mock.ts'
 
 export default function Advanced() {
-  const { tableProvider, tableQuery, sorting, pagination, globalFilter, rowSelection } = useTableProvider({
+  const { tableProvider, tableQuery, sorting, pagination, globalFilter } = useTableProvider({
     manual: {
       pagination: true,
       sorting: true,
       globalFilter: true,
     },
     rowSelection: 'multiple',
+
+    initialState: {
+      globalFilter: 'xy',
+    },
   })
 
   const { data, isFetching, isPlaceholderData } = useQuery({
@@ -33,7 +37,7 @@ export default function Advanced() {
 
   return (
     <AppPageContainer title="Server table">
-      <AppNewTable
+      <AppTable
         data={data?.data}
         rowCount={data?.total}
         provider={tableProvider}
@@ -62,6 +66,7 @@ export default function Advanced() {
                 accessorKey: 'address',
               },
             ],
+
           },
           {
             header: 'Work Information',

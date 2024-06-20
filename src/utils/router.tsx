@@ -1,37 +1,59 @@
-import { createBrowserRouter } from 'react-router-dom'
-import { IconChartPie, IconDatabase, IconForms, IconHome, IconUserCheck } from '@tabler/icons-react'
-import Index from '../pages/app'
-import AppLayout from '../pages/app/_layout.tsx'
-import type { NavLinkItem } from '../pages/app/_layout.tsx'
-import Server from '@/pages/app/table/server.tsx'
+import { type RouteObject, createBrowserRouter } from 'react-router-dom'
+import type { TablerIcon } from '@tabler/icons-react'
+import { IconDatabase } from '@tabler/icons-react'
+import AppLayout from '@/pages/app/layout.tsx'
+import Index from '@/pages/app'
 import Client from '@/pages/app/table/client.tsx'
+import Server from '@/pages/app/table/server.tsx'
 import Advanced from '@/pages/app/table/advanced.tsx'
 
-const navbarLinks: NavLinkItem[] = [
-  {
-    label: 'Home',
-    icon: IconHome,
-    link: '/',
-  },
-  {
-    label: 'Charts',
-    icon: IconChartPie,
-    link: '/charts',
-  },
-  {
-    label: 'Forms',
-    icon: IconForms,
-    children: [
-      {
-        label: 'Local validation only',
-        link: '/forms/local',
-      },
-      {
-        label: 'With server validation',
-        link: '/forms/server',
-      },
-    ],
-  },
+interface NavLinkParent {
+  label: string
+  icon: TablerIcon
+  children: NavLinkChild[]
+}
+
+export interface NavLinkChild {
+  label: string
+  link: string
+}
+
+interface NavLinkRootItem {
+  label: string
+  icon: TablerIcon
+  link: string
+}
+
+export type NavLinkItem = (NavLinkParent | NavLinkRootItem)
+export const navbarLinks: NavLinkItem[] = [
+  // {
+  //   label: 'Home',
+  //   icon: IconHome,
+  //   link: '/',
+  // },
+  // {
+  //   label: 'Charts',
+  //   icon: IconChartPie,
+  //   link: '/charts',
+  // },
+  // {
+  //   label: 'Forms',
+  //   icon: IconForms,
+  //   children: [
+  //     {
+  //       label: 'Local validation only',
+  //       link: '/forms/local',
+  //     },
+  //     {
+  //       label: 'Server data source',
+  //       link: '/forms/async',
+  //     },
+  //     {
+  //       label: 'Server validated',
+  //       link: '/forms/server',
+  //     },
+  //   ],
+  // },
   {
     label: 'Table',
     icon: IconDatabase,
@@ -50,27 +72,27 @@ const navbarLinks: NavLinkItem[] = [
       },
     ],
   },
-  {
-    label: 'Role based access control',
-    icon: IconUserCheck,
-    children: [
-      {
-        label: 'Everyone',
-        link: '/rbac/admin',
-      },
-      {
-        label: 'Only admins',
-        link: '/rbac/everyone',
-      },
-      {
-        label: 'Only admins can modify',
-        link: '/rbac/selective',
-      },
-    ],
-  },
+  // {
+  //   label: 'Role based access control',
+  //   icon: IconUserCheck,
+  //   children: [
+  //     {
+  //       label: 'Everyone',
+  //       link: '/rbac/everyone',
+  //     },
+  //     {
+  //       label: 'Only admins',
+  //       link: '/rbac/admins',
+  //     },
+  //     {
+  //       label: 'Only admins can modify',
+  //       link: '/rbac/selective',
+  //     },
+  //   ],
+  // },
 ]
 
-const router = createBrowserRouter([
+export const routes: RouteObject[] = [
   {
     path: '/',
     element: <AppLayout />,
@@ -78,6 +100,7 @@ const router = createBrowserRouter([
       {
         path: '/',
         element: <Index />,
+
       },
       {
         path: 'table',
@@ -96,8 +119,17 @@ const router = createBrowserRouter([
           },
         ],
       },
+      // {
+      //   path: 'rbac',
+      //   children: [
+      //     {
+      //       path: 'everyone',
+      //       element: <Everyone />,
+      //     },
+      //   ],
+      // },
     ],
   },
-])
+]
 
-export { navbarLinks, router }
+export const router = createBrowserRouter(routes)

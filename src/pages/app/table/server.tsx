@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Anchor, Avatar, Group, Text } from '@mantine/core'
 import AppPageContainer from '../../../components/app/AppPageContainer.tsx'
-import AppNewTable from '@/components/app/AppTable.tsx'
+import AppTable from '@/components/app/AppTable.tsx'
 import useTableProvider from '@/hooks/useTableProvider.ts'
 import { getUsers } from '@/utils/mock.ts'
 
@@ -32,7 +32,7 @@ export default function Server() {
 
   return (
     <AppPageContainer title="Server table">
-      <AppNewTable
+      <AppTable
         data={data?.data}
         rowCount={data?.total}
         provider={tableProvider}
