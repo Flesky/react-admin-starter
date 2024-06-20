@@ -14,14 +14,14 @@ import { Outlet, NavLink as RouterNavLink, matchPath, useLocation } from 'react-
 import { useMemo } from 'react'
 import { clsx } from 'clsx'
 import { IconChevronRight } from '@tabler/icons-react'
-import useNavbarStore from '@/stores/navbar.ts'
+import { useDisclosure } from '@mantine/hooks'
 import { AbilityContext } from '@/components/app/Can.tsx'
 import defineAbilityFor from '@/utils/ability.ts'
 
 import type { NavLinkChild, NavLinkItem } from '@/utils/router.tsx'
 import { navbarLinks } from '@/utils/router.tsx'
 
-function renderNavItem(item: NavLinkItem | NavLinkChild, pathname: string) {
+function renderNavItem(item: NavLinkItem | NavLinkChild, pathname: string, isMobile = false, toggleMobile: () => void) {
   if ('link' in item) {
     return (
       <NavLink
@@ -32,8 +32,8 @@ function renderNavItem(item: NavLinkItem | NavLinkChild, pathname: string) {
         label={item.label}
         leftSection={'icon' in item ? <item.icon size={24} /> : undefined}
         onClick={() => {
-          if (pathname !== item.link && useNavbarStore.getState().isOpenMobile)
-            useNavbarStore.getState().toggleMobile()
+          if (pathname !== item.link && isMobile)
+            toggleMobile()
         }}
         classNames={{
           root: 'px-3 py-2.5 rounded',
@@ -63,7 +63,7 @@ function renderNavItem(item: NavLinkItem | NavLinkChild, pathname: string) {
         }}
       >
         {item.children?.map(child => (
-          renderNavItem(child, pathname)
+          renderNavItem(child, pathname, isMobile, toggleMobile)
         ))}
       </NavLink>
     )
@@ -71,10 +71,11 @@ function renderNavItem(item: NavLinkItem | NavLinkChild, pathname: string) {
 }
 
 export default function AppLayout() {
-  const [isOpenMobile, isOpenDesktop, toggleMobile, toggleDesktop] = useNavbarStore(state => [state.isOpenMobile, state.isOpenDesktop, state.toggleMobile, state.toggleDesktop])
+  const [isOpenMobile, { toggle: toggleMobile }] = useDisclosure(false)
+  const [isOpenDesktop, { toggle: toggleDesktop }] = useDisclosure(true)
   const { pathname } = useLocation()
 
-  const links = useMemo(() => navbarLinks.map(item => renderNavItem(item, pathname)), [pathname])
+  const links = useMemo(() => navbarLinks.map(item => renderNavItem(item, pathname, isOpenMobile, toggleMobile)), [pathname, isOpenMobile, toggleMobile])
 
   return (
     <AbilityContext.Provider value={defineAbilityFor('employee')}>
