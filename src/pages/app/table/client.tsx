@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { faker } from '@faker-js/faker'
-import AppPageContainer from '../../../components/app/AppPageContainer.tsx'
+import AppPageContainer from '@/components/app/AppPageContainer.tsx'
 import AppTable from '@/components/app/AppTable.tsx'
 import useTableProvider from '@/hooks/useTableProvider.ts'
 
@@ -18,7 +18,7 @@ const users = faker.helpers.multiple(createRandomUser, {
 })
 
 export default function Client() {
-  const { rowSelection, tableProvider } = useTableProvider({
+  const { tableProvider } = useTableProvider({
     rowSelection: 'single',
   })
 

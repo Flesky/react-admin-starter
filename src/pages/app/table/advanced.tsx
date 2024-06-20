@@ -7,11 +7,10 @@ import { getDetailedUsers } from '@/utils/mock.ts'
 
 export default function Advanced() {
   const { tableProvider, tableQuery, sorting, pagination, globalFilter } = useTableProvider({
-    manual: {
-      pagination: true,
-      sorting: true,
-      globalFilter: true,
-    },
+    manual: true,
+    pagination: true,
+    sorting: true,
+    globalFilter: true,
     rowSelection: 'multiple',
 
     initialState: {

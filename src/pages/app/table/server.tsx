@@ -7,11 +7,10 @@ import { getUsers } from '@/utils/mock.ts'
 
 export default function Server() {
   const { tableProvider, tableQuery, sorting, pagination, globalFilter } = useTableProvider({
-    manual: {
-      pagination: true,
-      sorting: true,
-      globalFilter: true,
-    },
+    manual: true,
+    pagination: true,
+    sorting: true,
+    globalFilter: true,
   })
 
   const { data, isFetching, isPlaceholderData } = useQuery({

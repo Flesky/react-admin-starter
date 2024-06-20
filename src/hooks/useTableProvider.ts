@@ -2,32 +2,31 @@ import type { PaginationState, RowSelectionState, SortingState, TableOptions } f
 import { useState } from 'react'
 
 interface TableConfig {
-  manual?: {
-    pagination?: boolean
-    sorting?: boolean
-    globalFilter?: boolean
-  }
+  // If true, the table will assume that the data is managed (paginated, sorted, etc.) externally.
+  manual?: boolean
+
+  // Pagination, sorting, and filters must be opted out if the server source doesn't support them.
+  pagination?: boolean
+  sorting?: boolean
+  globalFilter?: boolean
+
   rowSelection?: 'single' | 'multiple'
 
   initialState?: {
-    pagination?: {
-      pageIndex: number
-      pageSize: number
-    }
+    pagination?: PaginationState
     sorting?: SortingState
     globalFilter?: string
     rowSelection?: RowSelectionState
   }
-
 }
 
 export type TableProvider = Partial<Omit<TableOptions<any>, 'columns' | 'data' | 'getCoreRowModel'>> & { features: TableConfig }
 
 export type TableHook<F extends TableConfig> =
-  (F extends { manual: object } ? { tableQuery: TableOptions<any>['state'] } : object) &
-  (F extends { manual: { pagination: true } } ? { pagination: PaginationState } : object) &
-  (F extends { manual: { sorting: true } } ? { sorting: SortingState } : object) &
-  (F extends { manual: { globalFilter: true } } ? { globalFilter: string } : object) &
+  (F extends { manual: true } ? { tableQuery: TableOptions<any>['state'] } : object) &
+  (F extends { pagination: false } ? object : { pagination: PaginationState }) &
+  (F extends { sorting: false } ? object : { sorting: SortingState }) &
+  (F extends { globalFilter: false } ? object : { globalFilter: string }) &
   (F extends { rowSelection: 'single' | 'multiple' } ? { rowSelection: RowSelectionState } : object) &
   { tableProvider: TableProvider }
 
@@ -45,6 +44,12 @@ export default function useTableProvider<F extends TableConfig>(features: F) {
   let tableProvider: TableProvider = { features }
   let tableQuery: TableOptions<any>['state']
 
+  tableProvider = {
+    ...tableProvider,
+    enableSorting: features.sorting !== false,
+    enableFilters: features.globalFilter !== false,
+  }
+
   if ('manual' in features) {
     tableProvider = {
       ...tableProvider,
@@ -59,9 +64,6 @@ export default function useTableProvider<F extends TableConfig>(features: F) {
       manualPagination: true,
       manualSorting: true,
       manualFiltering: true,
-
-      enableSorting: !!features.manual?.sorting,
-      enableGlobalFilter: !!features.manual?.globalFilter,
     }
     tableQuery = {
       pagination,
@@ -69,7 +71,6 @@ export default function useTableProvider<F extends TableConfig>(features: F) {
       globalFilter,
     }
   }
-
   if (features.rowSelection) {
     tableProvider = {
       ...tableProvider,
@@ -85,9 +86,9 @@ export default function useTableProvider<F extends TableConfig>(features: F) {
   return {
     tableProvider,
     tableQuery,
-    ...(features.manual?.pagination ? { pagination } : {}),
-    ...(features.manual?.sorting ? { sorting } : {}),
-    ...(features.manual?.globalFilter ? { globalFilter } : {}),
+    ...(features.pagination !== false ? { pagination } : {}),
+    ...(features.sorting !== false ? { sorting } : {}),
+    ...(features.globalFilter !== false ? { globalFilter } : {}),
     ...(features.rowSelection ? { rowSelection } : {}),
   } as TableHook<F>
 }
