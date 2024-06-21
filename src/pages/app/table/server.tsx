@@ -62,7 +62,7 @@ export default function Server() {
                 size="sm"
                 c="blue"
               >
-                {cell.getValue()}
+                {cell.getValue() as string}
               </Anchor>
             ),
           },
