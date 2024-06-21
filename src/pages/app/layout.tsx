@@ -137,7 +137,8 @@ export default function AppLayout() {
             </Group>
           </Group>
         </AppShell.Header>
-        <AppShell.Main className="h-dvh">
+        <AppShell.Main>
+          { /* className="h-dvh" */ }
           <Outlet />
         </AppShell.Main>
       </AppShell>

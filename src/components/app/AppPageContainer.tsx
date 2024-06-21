@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Box, Group, Stack, Title } from '@mantine/core'
+import { Group, Stack, Title } from '@mantine/core'
 
 // https://procomponents.ant.design/en-US/components/page-container
 
@@ -16,9 +16,7 @@ export default function AppPageContainer({ title, extra, children }: AppPageCont
         <Title order={1} size="h2">{title}</Title>
         <Group>{extra}</Group>
       </Group>
-      <Box>
-        {children}
-      </Box>
+      {children}
     </Stack>
   )
 }

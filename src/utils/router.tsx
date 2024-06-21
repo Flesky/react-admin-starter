@@ -67,7 +67,7 @@ export const navbarLinks: NavLinkItem[] = [
         link: '/table/server',
       },
       {
-        label: 'Kitchen Sink',
+        label: 'Kitchen sink',
         link: '/table/kitchen-sink',
       },
     ],
