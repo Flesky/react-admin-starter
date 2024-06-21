@@ -7,16 +7,24 @@ import { getDetailedUsers } from '@/utils/mock.ts'
 import AppPageContainer from '@/components/app/AppPageContainer.tsx'
 
 export default function KitchenSink() {
+  const form = useForm({
+    initialValues: {
+      data: true,
+      isLoading: false,
+      globalFilter: true,
+      rowExpansion: false,
+    },
+  })
   const { tableProvider, tableQuery, sorting, pagination, globalFilter } = useProTable({
     manual: true,
     pagination: true,
     sorting: true,
-    globalFilter: true,
+    globalFilter: form.getValues().globalFilter,
     rowSelection: 'multiple',
 
-    initialState: {
-      globalFilter: 'xy',
-    },
+    // initialState: {
+    //   globalFilter: 'xy',
+    // },
   })
 
   const { data, isFetching, isPlaceholderData } = useQuery({
@@ -35,20 +43,13 @@ export default function KitchenSink() {
     },
   })
 
-  const form = useForm({
-    initialValues: {
-      data: true,
-      isLoading: false,
-      rowExpansion: false,
-    },
-  })
-
   return (
     <AppPageContainer title="Kitchen sink">
       <Fieldset legend="Table options">
         <Group>
           <Switch label="Data" {...form.getInputProps('data', { type: 'checkbox' })} />
           <Switch label="Loading" {...form.getInputProps('isLoading', { type: 'checkbox' })} />
+          <Switch label="Global filter" {...form.getInputProps('globalFilter', { type: 'checkbox' })} />
           <Switch label="Row expansion" {...form.getInputProps('rowExpansion', { type: 'checkbox' })} />
         </Group>
       </Fieldset>

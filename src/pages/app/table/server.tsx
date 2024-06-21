@@ -3,7 +3,7 @@ import { Anchor, Avatar, Group, Text } from '@mantine/core'
 import AppPageContainer from '../../../components/app/AppPageContainer.tsx'
 import AppTable from '@/components/app/AppTable.tsx'
 import useProTable from '@/hooks/useProTable.ts'
-import { getUsers } from '@/utils/mock.ts'
+import { getDetailedUsers } from '@/utils/mock.ts'
 
 export default function Server() {
   const { tableProvider, tableQuery, sorting, pagination, globalFilter } = useProTable({
@@ -19,7 +19,7 @@ export default function Server() {
       await new Promise(resolve => setTimeout(resolve, 800 * Math.random()))
 
       const { pageIndex, pageSize } = pagination
-      return getUsers({
+      return getDetailedUsers({
         pageIndex,
         pageSize,
         sortColumn: sorting[0]?.id,
@@ -48,12 +48,12 @@ export default function Server() {
             ),
           },
           {
-            header: 'Job title',
-            accessorKey: 'jobTitle',
+            header: 'Job type',
+            accessorKey: 'job.type',
           },
           {
             header: 'Email',
-            accessorKey: 'email',
+            accessorKey: 'job.email',
             cell: ({ cell }) => (
               <Anchor
                 href={
