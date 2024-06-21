@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { faker } from '@faker-js/faker'
 import AppPageContainer from '@/components/app/AppPageContainer.tsx'
 import AppTable from '@/components/app/AppTable.tsx'
-import useTableProvider from '@/hooks/useTableProvider.ts'
+import useProTable from '@/hooks/useProTable.ts'
 
 function createRandomUser() {
   return {
@@ -18,7 +18,7 @@ const users = faker.helpers.multiple(createRandomUser, {
 })
 
 export default function Client() {
-  const { tableProvider } = useTableProvider({
+  const { tableProvider } = useProTable({
     rowSelection: 'single',
   })
 

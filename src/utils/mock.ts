@@ -97,6 +97,6 @@ export function getDetailedUsers({ pageIndex, pageSize, sortColumn, sortDirectio
 
   return {
     data: queryResult.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize),
-    total: detailedUsers.length,
+    total: queryResult.length,
   }
 }

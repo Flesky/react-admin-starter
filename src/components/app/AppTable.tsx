@@ -1,69 +1,127 @@
-import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
+import {
+  flexRender,
+  getCoreRowModel,
+  getExpandedRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
-import { ActionIcon, Box, Card, Checkbox, CloseButton, Group, LoadingOverlay, Radio, ScrollArea, Select, Stack, Table, Text, TextInput } from '@mantine/core'
-import { IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsUpDown, IconChevronLeft, IconChevronRight, IconDatabaseOff, IconSearch } from '@tabler/icons-react'
-import type { TableProvider } from '@/hooks/useTableProvider.ts'
+import {
+  ActionIcon,
+  Box,
+  Card,
+  Checkbox,
+  CloseButton,
+  Group,
+  LoadingOverlay,
+  Radio,
+  ScrollArea,
+  Select,
+  Stack,
+  Table,
+  Text,
+  TextInput,
+} from '@mantine/core'
+import {
+  IconArrowNarrowDown,
+  IconArrowNarrowUp,
+  IconArrowsUpDown,
+  IconChevronDown,
+  IconChevronLeft,
+  IconChevronRight,
+  IconDatabaseOff,
+  IconSearch,
+} from '@tabler/icons-react'
+import { Fragment, useMemo } from 'react'
+import type { TableProvider } from '@/hooks/useProTable.ts'
 
 type RowData = Record<string, any>
 
 interface Props<T extends RowData> {
   data: T[] | undefined
-  columns: ColumnDef<T, any>[]
+  columns: ColumnDef<T>[]
   rowCount?: number
   isLoading?: boolean
+  renderExpandedRow?: (row: T) => React.ReactNode
 
   provider?: TableProvider
 }
 
-export default function AppTable<T extends RowData>({ data, columns, rowCount, isLoading, provider }: Props<T>) {
+export default function AppTable<T extends RowData>({ data, columns: _columns, rowCount, isLoading, renderExpandedRow, provider }: Props<T>) {
+  const columns = useMemo(() => {
+    const __columns: ColumnDef<T>[] = [..._columns]
+
+    if (provider?._config.rowSelection === 'single') {
+      __columns.unshift({
+        id: 'selection',
+        cell: ({ row }) => (
+          <Radio
+            checked={row.getIsSelected()}
+            disabled={!row.getCanSelect()}
+            onChange={row.getToggleSelectedHandler()}
+          />
+        ),
+      })
+    }
+    else if (provider?._config.rowSelection === 'multiple') {
+      __columns.unshift({
+        id: 'selection',
+        header: ({ table }) => (
+          <Checkbox
+            aria-label="Select all rows"
+            checked={table.getIsAllRowsSelected()}
+            indeterminate={table.getIsSomeRowsSelected()}
+            onChange={table.getToggleAllPageRowsSelectedHandler()}
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            aria-label="Select row"
+            checked={row.getIsSelected()}
+            disabled={!row.getCanSelect()}
+            onChange={row.getToggleSelectedHandler()}
+          />
+        ),
+      })
+
+      if (renderExpandedRow) {
+        __columns.unshift({
+          id: 'expander',
+          cell: ({ row }) => (
+            <ActionIcon
+              onClick={() => row.toggleExpanded()}
+              color="dimmed"
+              size="md"
+              variant={row.getIsExpanded() ? 'light' : 'subtle'}
+            >
+              {row.getIsExpanded() ? <IconChevronDown size={16} /> : <IconChevronRight size={16} /> }
+            </ActionIcon>
+          ),
+        })
+      }
+    }
+
+    return __columns
+  }, [_columns, provider?._config.rowSelection, renderExpandedRow])
+
   const table = useReactTable<T>({
     data: data || [],
-    columns: provider?.onRowSelectionChange
-      ? [
-          {
-            id: 'selection',
-            header: ({ table }) => table.options.enableMultiRowSelection && (
-              <Checkbox
-                aria-label="Select row"
-                checked={table.getIsAllRowsSelected()}
-                indeterminate={table.getIsSomeRowsSelected()}
-                onChange={table.getToggleAllPageRowsSelectedHandler()}
-              />
-            ),
-            cell: ({ table, row }) => table.options.enableMultiRowSelection
-              ? (
-                <Checkbox
-                  checked={row.getIsSelected()}
-                  disabled={!row.getCanSelect()}
-                  onChange={row.getToggleSelectedHandler()}
-                />
-                )
-              : (
-                <Radio
-                  checked={row.getIsSelected()}
-                  disabled={!row.getCanSelect()}
-                  onChange={row.getToggleSelectedHandler()}
-                />
-                ),
-          },
-          ...columns,
-        ]
-      : columns,
+    columns,
     getRowId: row => row.id,
     rowCount,
 
     globalFilterFn: 'includesString',
-    enableGlobalFilter: true,
-
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+
+    enableExpanding: !!renderExpandedRow,
 
     ...provider,
-    state: {
-      ...provider?.state,
-    },
   })
 
   return (
@@ -96,18 +154,11 @@ export default function AppTable<T extends RowData>({ data, columns, rowCount, i
         </Card>
       )}
 
-      <Card withBorder h="100%" p={0}>
+      <Card withBorder p={0}>
         <LoadingOverlay visible={isLoading} zIndex={20} />
 
         <ScrollArea styles={{ scrollbar: { zIndex: 50 } }}>
-          <Table
-            miw="600px"
-            className="overflow-x-auto"
-            horizontalSpacing="md"
-            verticalSpacing="xs"
-            stickyHeader
-            highlightOnHover
-          >
+          <Table miw="1000px" className="overflow-x-auto" horizontalSpacing="md" verticalSpacing="xs" stickyHeader highlightOnHover>
             <Table.Thead>
               {table.getHeaderGroups().map(headerGroup => (
                 <Table.Tr key={headerGroup.id}>
@@ -139,13 +190,25 @@ export default function AppTable<T extends RowData>({ data, columns, rowCount, i
 
             <Table.Tbody>
               {table.getRowModel().rows.map(row => (
-                <Table.Tr key={row.id}>
-                  {row.getVisibleCells().map(cell => (
-                    <Table.Td key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </Table.Td>
-                  ))}
-                </Table.Tr>
+                <Fragment key={row.id}>
+
+                  <Table.Tr key={row.id}>
+                    {row.getVisibleCells().map(cell => (
+                      <Table.Td key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </Table.Td>
+                    ))}
+                  </Table.Tr>
+
+                  {row.getIsExpanded() && (
+                    <Table.Tr>
+                      <Table.Td colSpan={row.getVisibleCells().length}>
+                        {renderExpandedRow!(row.original)}
+                      </Table.Td>
+                    </Table.Tr>
+                  )}
+
+                </Fragment>
               ))}
             </Table.Tbody>
           </Table>
@@ -153,7 +216,7 @@ export default function AppTable<T extends RowData>({ data, columns, rowCount, i
 
         {!table.getFilteredRowModel().rows.length
         && (
-          <Stack gap="xs" mih={150} m="lg" justify="center" align="center">
+          <Stack gap="xs" m="lg" justify="center" align="center">
             <Box bg="gray.2" className="rounded-full" p="xs">
               <IconDatabaseOff color="var(--mantine-color-dimmed)" />
             </Box>
@@ -162,7 +225,7 @@ export default function AppTable<T extends RowData>({ data, columns, rowCount, i
         )}
       </Card>
 
-      {provider?.features.pagination !== false && (
+      {provider?._config.pagination !== false && (
         <Group
           justify="space-between"
         >

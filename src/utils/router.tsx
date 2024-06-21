@@ -5,7 +5,7 @@ import AppLayout from '@/pages/app/layout.tsx'
 import Index from '@/pages/app'
 import Client from '@/pages/app/table/client.tsx'
 import Server from '@/pages/app/table/server.tsx'
-import Advanced from '@/pages/app/table/advanced.tsx'
+import KitchenSink from '@/pages/app/table/kitchen-sink.tsx'
 
 interface NavLinkParent {
   label: string
@@ -67,8 +67,8 @@ export const navbarLinks: NavLinkItem[] = [
         link: '/table/server',
       },
       {
-        label: 'Advanced usage',
-        link: '/table/advanced',
+        label: 'Kitchen Sink',
+        link: '/table/kitchen-sink',
       },
     ],
   },
@@ -114,8 +114,8 @@ export const routes: RouteObject[] = [
             element: <Server />,
           },
           {
-            path: 'advanced',
-            element: <Advanced />,
+            path: 'kitchen-sink',
+            element: <KitchenSink />,
           },
         ],
       },

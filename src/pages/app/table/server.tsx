@@ -2,11 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { Anchor, Avatar, Group, Text } from '@mantine/core'
 import AppPageContainer from '../../../components/app/AppPageContainer.tsx'
 import AppTable from '@/components/app/AppTable.tsx'
-import useTableProvider from '@/hooks/useTableProvider.ts'
+import useProTable from '@/hooks/useProTable.ts'
 import { getUsers } from '@/utils/mock.ts'
 
 export default function Server() {
-  const { tableProvider, tableQuery, sorting, pagination, globalFilter } = useTableProvider({
+  const { tableProvider, tableQuery, sorting, pagination, globalFilter } = useProTable({
     manual: true,
     pagination: true,
     sorting: true,

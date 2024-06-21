@@ -20,9 +20,10 @@ interface TableConfig {
   }
 }
 
-export type TableProvider = Partial<Omit<TableOptions<any>, 'columns' | 'data' | 'getCoreRowModel'>> & { features: TableConfig }
+export type TableProvider =
+  Partial<Omit<TableOptions<any>, 'columns' | 'data' | 'getCoreRowModel'>> & { _config: TableConfig }
 
-export type TableHook<F extends TableConfig> =
+export type ProTable<F extends TableConfig> =
   (F extends { manual: true } ? { tableQuery: TableOptions<any>['state'] } : object) &
   (F extends { pagination: false } ? object : { pagination: PaginationState }) &
   (F extends { sorting: false } ? object : { sorting: SortingState }) &
@@ -30,8 +31,8 @@ export type TableHook<F extends TableConfig> =
   (F extends { rowSelection: 'single' | 'multiple' } ? { rowSelection: RowSelectionState } : object) &
   { tableProvider: TableProvider }
 
-export default function useTableProvider<F extends TableConfig>(features: F) {
-  const { initialState } = features
+export default function useProTable<F extends TableConfig>(config: F) {
+  const { initialState } = config
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: initialState?.pagination?.pageIndex ?? 0,
@@ -41,16 +42,16 @@ export default function useTableProvider<F extends TableConfig>(features: F) {
   const [globalFilter, setGlobalFilter] = useState<string>(initialState?.globalFilter ?? '')
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
-  let tableProvider: TableProvider = { features }
+  let tableProvider: TableProvider = { _config: config }
   let tableQuery: TableOptions<any>['state']
 
   tableProvider = {
     ...tableProvider,
-    enableSorting: features.sorting !== false,
-    enableFilters: features.globalFilter !== false,
+    enableSorting: config.sorting !== false,
+    enableGlobalFilter: config.globalFilter !== false,
   }
 
-  if ('manual' in features) {
+  if (config.manual === true) {
     tableProvider = {
       ...tableProvider,
       state: {
@@ -71,7 +72,7 @@ export default function useTableProvider<F extends TableConfig>(features: F) {
       globalFilter,
     }
   }
-  if (features.rowSelection) {
+  if (config.rowSelection) {
     tableProvider = {
       ...tableProvider,
       state: {
@@ -79,16 +80,16 @@ export default function useTableProvider<F extends TableConfig>(features: F) {
         rowSelection,
       },
       onRowSelectionChange: setRowSelection,
-      enableMultiRowSelection: features.rowSelection === 'multiple',
+      enableMultiRowSelection: config.rowSelection === 'multiple',
     }
   }
 
   return {
     tableProvider,
     tableQuery,
-    ...(features.pagination !== false ? { pagination } : {}),
-    ...(features.sorting !== false ? { sorting } : {}),
-    ...(features.globalFilter !== false ? { globalFilter } : {}),
-    ...(features.rowSelection ? { rowSelection } : {}),
-  } as TableHook<F>
+    ...(config.pagination !== false ? { pagination } : {}),
+    ...(config.sorting !== false ? { sorting } : {}),
+    ...(config.globalFilter !== false ? { globalFilter } : {}),
+    ...(config.rowSelection ? { rowSelection } : {}),
+  } as ProTable<F>
 }
