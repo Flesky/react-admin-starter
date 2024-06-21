@@ -34,6 +34,7 @@ import {
   IconDatabaseOff,
   IconSearch,
 } from '@tabler/icons-react'
+import type { ReactNode } from 'react'
 import { Fragment, useMemo } from 'react'
 import type { TableProvider } from '@/hooks/useProTable.ts'
 
@@ -44,7 +45,7 @@ interface Props<T extends RowData> {
   columns: ColumnDef<T>[]
   rowCount?: number
   isLoading?: boolean
-  renderExpandedRow?: (row: T) => React.ReactNode
+  renderExpandedRow?: (row: T) => ReactNode
 
   provider?: TableProvider
 }
@@ -159,31 +160,29 @@ export default function AppTable<T extends RowData>({ data, columns: _columns, r
 
         <ScrollArea styles={{ scrollbar: { zIndex: 50 } }}>
           <Table miw="1000px" className="overflow-x-auto" horizontalSpacing="md" verticalSpacing="xs" stickyHeader highlightOnHover>
-            <Table.Thead>
+            <Table.Thead className="shadow">
               {table.getHeaderGroups().map(headerGroup => (
-                <Table.Tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <Table.Th fw={500} key={header.id} colSpan={header.colSpan} h={50}>
-                        {!header.isPlaceholder && (
-                          <Group className="text-nowrap w-full flex-nowrap select-none">
-                            {flexRender(header.column.columnDef.header, header.getContext())}
-                            {header.column.getCanSort()
-                            && (
-                              <ActionIcon
-                                onClick={header.column.getToggleSortingHandler()}
-                                color="dimmed"
-                                size="md"
-                                variant={header.column.getIsSorted() ? 'light' : 'subtle'}
-                              >
-                                {{ asc: <IconArrowNarrowUp size={16} />, desc: <IconArrowNarrowDown size={16} /> }[header.column.getIsSorted() as string] || <IconArrowsUpDown size={16} />}
-                              </ActionIcon>
-                            )}
-                          </Group>
-                        )}
-                      </Table.Th>
-                    )
-                  })}
+                <Table.Tr className="border-0" key={headerGroup.id}>
+                  {headerGroup.headers.map(header => (
+                    <Table.Th fw={500} key={header.id} colSpan={header.colSpan} h={50}>
+                      {!header.isPlaceholder && (
+                        <Group className="text-nowrap w-full flex-nowrap select-none">
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {header.column.getCanSort()
+                          && (
+                            <ActionIcon
+                              onClick={header.column.getToggleSortingHandler()}
+                              color="dimmed"
+                              size="md"
+                              variant={header.column.getIsSorted() ? 'light' : 'subtle'}
+                            >
+                              {{ asc: <IconArrowNarrowUp size={16} />, desc: <IconArrowNarrowDown size={16} /> }[header.column.getIsSorted() as string] || <IconArrowsUpDown size={16} />}
+                            </ActionIcon>
+                          )}
+                        </Group>
+                      )}
+                    </Table.Th>
+                  ))}
                 </Table.Tr>
               ))}
             </Table.Thead>
