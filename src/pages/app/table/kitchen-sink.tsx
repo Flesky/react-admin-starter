@@ -1,64 +1,94 @@
 import { useQuery } from '@tanstack/react-query'
-import { Anchor, Avatar, Fieldset, Group, Switch, Text } from '@mantine/core'
+import { Anchor, Avatar, Fieldset, Group, Select, Stack, Switch, Text } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import AppTable from '@/components/app/AppTable.tsx'
 import useProTable from '@/hooks/useProTable.ts'
-import { getDetailedUsers } from '@/utils/mock.ts'
+import { getUsers, users } from '@/utils/mock.ts'
 import AppPageContainer from '@/components/app/AppPageContainer.tsx'
 
 export default function KitchenSink() {
   const form = useForm({
     initialValues: {
       data: true,
-      isLoading: false,
+      manual: true,
       globalFilter: true,
-      rowExpansion: false,
+      rowExpansion: true,
+      selection: 'multiple',
     },
   })
+
+  // @ts-expect-error tableQuery is dynamically toggled
   const { tableProvider, tableQuery, sorting, pagination, globalFilter } = useProTable({
-    manual: true,
+    manual: form.getValues().manual,
     pagination: true,
     sorting: true,
     globalFilter: form.getValues().globalFilter,
-    rowSelection: 'multiple',
-
-    // initialState: {
-    //   globalFilter: 'xy',
-    // },
+    rowSelection: form.getValues().selection === 'disabled' ? false : form.getValues().selection as 'single' | 'multiple',
   })
 
   const { data, isFetching, isPlaceholderData } = useQuery({
-    queryKey: ['table/advanced', tableQuery],
+    queryKey: ['table/advanced', form.getValues().data, form.getValues().manual, tableQuery],
     queryFn: async () => {
       await new Promise(resolve => setTimeout(resolve, 800 * Math.random()))
-
       const { pageIndex, pageSize } = pagination
-      return getDetailedUsers({
-        pageIndex,
-        pageSize,
-        sortColumn: sorting[0]?.id,
-        sortDirection: sorting[0]?.desc ? 'desc' : 'asc',
-        globalFilter,
-      })
+
+      if (!form.getValues().data) {
+        return {
+          data: [],
+          total: 0,
+        }
+      }
+
+      if (form.getValues().manual) {
+        return getUsers({
+          pageIndex,
+          pageSize,
+          sortColumn: sorting[0]?.id,
+          sortDirection: sorting[0]?.desc ? 'desc' : 'asc',
+          globalFilter,
+        })
+      }
+      else {
+        return getUsers({
+          pageIndex: 0,
+          pageSize: users.length,
+        })
+      }
     },
   })
 
   return (
-    <AppPageContainer title="Kitchen sink">
+    <AppPageContainer title="Pro table">
       <Fieldset legend="Table options">
-        <Group>
-          <Switch label="Data" {...form.getInputProps('data', { type: 'checkbox' })} />
-          <Switch label="Loading" {...form.getInputProps('isLoading', { type: 'checkbox' })} />
-          <Switch label="Global filter" {...form.getInputProps('globalFilter', { type: 'checkbox' })} />
-          <Switch label="Row expansion" {...form.getInputProps('rowExpansion', { type: 'checkbox' })} />
-        </Group>
+        <Stack>
+          <Group>
+            <Switch label="Simulate server-side pagination" {...form.getInputProps('manual', { type: 'checkbox' })} />
+            <Switch label="Data" {...form.getInputProps('data', { type: 'checkbox' })} />
+            <Switch label="Global filter" {...form.getInputProps('globalFilter', { type: 'checkbox' })} />
+            <Switch label="Row expansion" {...form.getInputProps('rowExpansion', { type: 'checkbox' })} />
+          </Group>
+          <Group>
+            <Select
+              label="Selection"
+              allowDeselect={false}
+              data={[
+                { value: 'single', label: 'Single' },
+                { value: 'multiple', label: 'Multiple' },
+                { value: 'disabled', label: 'Disabled' },
+              ]}
+              {...form.getInputProps('selection')}
+            >
+            </Select>
+          </Group>
+        </Stack>
       </Fieldset>
 
       <AppTable
+        key={Number(form.getValues().manual)}
         data={form.getValues().data ? data?.data : []}
         rowCount={data?.total}
         provider={tableProvider}
-        isLoading={(isFetching && (!data || isPlaceholderData)) || form.getValues().isLoading}
+        isLoading={(isFetching && (!data || isPlaceholderData))}
         renderExpandedRow={form.getValues().rowExpansion
           ? profile => (
             <Group>
@@ -91,7 +121,6 @@ export default function KitchenSink() {
                 accessorKey: 'address',
               },
             ],
-
           },
           {
             header: 'Work Information',

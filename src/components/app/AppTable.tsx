@@ -86,22 +86,22 @@ export default function AppTable<T extends RowData>({ data, columns: _columns, r
           />
         ),
       })
+    }
 
-      if (renderExpandedRow) {
-        __columns.unshift({
-          id: 'expander',
-          cell: ({ row }) => (
-            <ActionIcon
-              onClick={() => row.toggleExpanded()}
-              color="dimmed"
-              size="md"
-              variant={row.getIsExpanded() ? 'light' : 'subtle'}
-            >
-              {row.getIsExpanded() ? <IconChevronDown size={16} /> : <IconChevronRight size={16} /> }
-            </ActionIcon>
-          ),
-        })
-      }
+    if (renderExpandedRow) {
+      __columns.unshift({
+        id: 'expander',
+        cell: ({ row }) => (
+          <ActionIcon
+            onClick={() => row.toggleExpanded()}
+            color="dimmed"
+            size="md"
+            variant={row.getIsExpanded() ? 'light' : 'subtle'}
+          >
+            {row.getIsExpanded() ? <IconChevronDown size={16} /> : <IconChevronRight size={16} /> }
+          </ActionIcon>
+        ),
+      })
     }
 
     return __columns
@@ -111,7 +111,7 @@ export default function AppTable<T extends RowData>({ data, columns: _columns, r
     data: data || [],
     columns,
     getRowId: row => row.id,
-    rowCount,
+    rowCount: provider?._config.manual ? rowCount : undefined,
 
     globalFilterFn: 'includesString',
     getCoreRowModel: getCoreRowModel(),

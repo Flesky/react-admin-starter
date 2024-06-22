@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker'
 
 faker.seed(1)
-
 function createRandomDetailedUser() {
   const firstName = faker.person.firstName()
   const lastName = faker.person.lastName()
@@ -20,16 +19,16 @@ function createRandomDetailedUser() {
   }
 }
 
-const detailedUsers = faker.helpers.multiple(createRandomDetailedUser, { count: 1920 })
+export const users = faker.helpers.multiple(createRandomDetailedUser, { count: 1920 })
 
-export function getDetailedUsers({ pageIndex, pageSize, sortColumn, sortDirection, globalFilter }: {
+export function getUsers({ pageIndex, pageSize, globalFilter, sortColumn, sortDirection }: {
   pageIndex: number
   pageSize: number
+  globalFilter?: string
   sortColumn?: string
   sortDirection?: 'asc' | 'desc'
-  globalFilter?: string
 }) {
-  let queryResult = [...detailedUsers]
+  let queryResult = [...users]
 
   if (globalFilter) {
     queryResult = queryResult.filter((user) => {
@@ -40,8 +39,8 @@ export function getDetailedUsers({ pageIndex, pageSize, sortColumn, sortDirectio
   if (sortColumn) {
     queryResult.sort((a, b) => {
       if (sortColumn) {
-        const valueA = String(a[sortColumn as keyof typeof detailedUsers[0]])
-        const valueB = String(b[sortColumn as keyof typeof detailedUsers[0]])
+        const valueA = String(a[sortColumn as keyof typeof users[0]])
+        const valueB = String(b[sortColumn as keyof typeof users[0]])
         return valueA.localeCompare(valueB) * (sortDirection === 'desc' ? -1 : 1)
       }
       return 0

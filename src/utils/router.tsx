@@ -3,8 +3,6 @@ import type { TablerIcon } from '@tabler/icons-react'
 import { IconDatabase } from '@tabler/icons-react'
 import AppLayout from '@/pages/app/layout.tsx'
 import Index from '@/pages/app'
-import Client from '@/pages/app/table/client.tsx'
-import Server from '@/pages/app/table/server.tsx'
 import KitchenSink from '@/pages/app/table/kitchen-sink.tsx'
 
 interface NavLinkParent {
@@ -57,20 +55,7 @@ export const navbarLinks: NavLinkItem[] = [
   {
     label: 'Table',
     icon: IconDatabase,
-    children: [
-      {
-        label: 'Client data',
-        link: '/table/client',
-      },
-      {
-        label: 'Server data',
-        link: '/table/server',
-      },
-      {
-        label: 'Kitchen sink',
-        link: '/table/kitchen-sink',
-      },
-    ],
+    link: '/table',
   },
   // {
   //   label: 'Role based access control',
@@ -104,20 +89,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: 'table',
-        children: [
-          {
-            path: 'client',
-            element: <Client />,
-          },
-          {
-            path: 'server',
-            element: <Server />,
-          },
-          {
-            path: 'kitchen-sink',
-            element: <KitchenSink />,
-          },
-        ],
+        element: <KitchenSink />,
       },
       // {
       //   path: 'rbac',

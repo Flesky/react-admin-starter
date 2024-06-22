@@ -10,7 +10,7 @@ interface TableConfig {
   sorting?: boolean
   globalFilter?: boolean
 
-  rowSelection?: 'single' | 'multiple'
+  rowSelection?: 'single' | 'multiple' | false
 
   initialState?: {
     pagination?: PaginationState
@@ -86,7 +86,7 @@ export default function useProTable<F extends TableConfig>(config: F) {
 
   return {
     tableProvider,
-    tableQuery,
+    ...(config.manual === true ? { tableQuery } : {}),
     ...(config.pagination !== false ? { pagination } : {}),
     ...(config.sorting !== false ? { sorting } : {}),
     ...(config.globalFilter !== false ? { globalFilter } : {}),
