@@ -36,7 +36,7 @@ import {
 } from '@tabler/icons-react'
 import type { ReactNode } from 'react'
 import { Fragment, useMemo } from 'react'
-import type { TableProvider } from '@/hooks/useProTable.ts'
+import type { TableProvider } from '@/hooks/useTableFeatures.ts'
 
 type RowData = Record<string, any>
 
@@ -120,6 +120,7 @@ export default function AppTable<T extends RowData>({ data, columns: _columns, r
     getSortedRowModel: getSortedRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
 
+    enableGlobalFilter: true,
     enableExpanding: !!renderExpandedRow,
 
     ...provider,
@@ -159,10 +160,10 @@ export default function AppTable<T extends RowData>({ data, columns: _columns, r
         <LoadingOverlay visible={isLoading} zIndex={20} />
 
         <ScrollArea styles={{ scrollbar: { zIndex: 50 } }}>
-          <Table miw="1000px" className="overflow-x-auto" horizontalSpacing="md" verticalSpacing="xs" stickyHeader highlightOnHover>
+          <Table miw="auto" className="overflow-x-auto" horizontalSpacing="md" verticalSpacing="xs" stickyHeader highlightOnHover>
             <Table.Thead className="shadow">
               {table.getHeaderGroups().map(headerGroup => (
-                <Table.Tr className="border-0" key={headerGroup.id}>
+                <Table.Tr className="border-0 shadow-sm" key={headerGroup.id}>
                   {headerGroup.headers.map(header => (
                     <Table.Th fw={500} key={header.id} colSpan={header.colSpan} h={50}>
                       {!header.isPlaceholder && (
@@ -216,7 +217,7 @@ export default function AppTable<T extends RowData>({ data, columns: _columns, r
         {!table.getFilteredRowModel().rows.length
         && (
           <Stack gap="xs" m="lg" justify="center" align="center">
-            <Box bg="gray.2" className="rounded-full" p="xs">
+            <Box bg="light-dark.4" className="rounded-full" p="xs">
               <IconDatabaseOff color="var(--mantine-color-dimmed)" />
             </Box>
             <Text size="sm" c="dimmed">No records</Text>
@@ -252,6 +253,9 @@ export default function AppTable<T extends RowData>({ data, columns: _columns, r
           </Text>
 
           <Group gap="xs">
+            <ActionIcon onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} variant="default">
+              <IconChevronLeft size={16} />
+            </ActionIcon>
             <Select
               data={Array.from({ length: table.getPageCount() }, (_, i) => ({
                 value: String(i + 1),
@@ -268,14 +272,9 @@ export default function AppTable<T extends RowData>({ data, columns: _columns, r
               {/* eslint-disable-next-line style/jsx-one-expression-per-line */}
               of {table.getPageCount()} page{table.getPageCount() === 1 ? '' : 's'}
             </Text>
-            <Group gap={4}>
-              <ActionIcon onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} variant="default">
-                <IconChevronLeft size={16} />
-              </ActionIcon>
-              <ActionIcon onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} variant="default">
-                <IconChevronRight size={16} />
-              </ActionIcon>
-            </Group>
+            <ActionIcon onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} variant="default">
+              <IconChevronRight size={16} />
+            </ActionIcon>
           </Group>
         </Group>
       )}

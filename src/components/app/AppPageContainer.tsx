@@ -11,9 +11,9 @@ interface AppPageContainerProps {
 
 export default function AppPageContainer({ title, extra, children }: AppPageContainerProps) {
   return (
-    <Stack>
-      <Group justify="space-between">
-        <Title order={1} size="h2">{title}</Title>
+    <Stack p="lg">
+      <Group justify="space-between" align="start">
+        <Title order={1} size="h3">{title}</Title>
         <Group>{extra}</Group>
       </Group>
       {children}

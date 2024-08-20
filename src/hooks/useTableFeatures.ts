@@ -31,7 +31,7 @@ export type ProTable<F extends TableConfig> =
   (F extends { rowSelection: 'single' | 'multiple' } ? { rowSelection: RowSelectionState } : object) &
   { tableProvider: TableProvider }
 
-export default function useProTable<F extends TableConfig>(config: F) {
+export default function useTableFeatures<F extends TableConfig>(config: F) {
   const { initialState } = config
 
   const [pagination, setPagination] = useState<PaginationState>({

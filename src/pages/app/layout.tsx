@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   AppShell,
   Avatar,
   Box,
@@ -9,11 +10,12 @@ import {
   Stack,
   Text,
   UnstyledButton,
+  useMantineColorScheme,
 } from '@mantine/core'
 import { Outlet, NavLink as RouterNavLink, matchPath, useLocation } from 'react-router-dom'
 import { useMemo } from 'react'
 import { clsx } from 'clsx'
-import { IconChevronRight } from '@tabler/icons-react'
+import { IconBell, IconChevronRight, IconMoonFilled, IconSunFilled } from '@tabler/icons-react'
 import { useDisclosure } from '@mantine/hooks'
 import { AbilityContext } from '@/components/app/Can.tsx'
 import defineAbilityFor from '@/utils/ability.ts'
@@ -75,6 +77,8 @@ export default function AppLayout() {
   const [isOpenDesktop, { toggle: toggleDesktop }] = useDisclosure(true)
   const { pathname } = useLocation()
 
+  const { colorScheme, toggleColorScheme } = useMantineColorScheme()
+
   const links = useMemo(() => navbarLinks.map(item => renderNavItem(item, pathname, isOpenMobile, toggleMobile)), [pathname, isOpenMobile, toggleMobile])
 
   return (
@@ -90,12 +94,11 @@ export default function AppLayout() {
           height: 60,
         }}
         layout="alt"
-        padding="lg"
       >
         <AppShell.Navbar>
           <AppShell.Section>
-            <Box bg="orange.5" w="100%" p="md">
-              <Text size="xl" fw={500}>react-mantine-starter</Text>
+            <Box bg="blue.5" w="100%" p="md">
+              <Text size="xl" fw={500} c="white">react-mantine-starter</Text>
             </Box>
             <Group p="md" justify="end" hiddenFrom="md">
               <Burger opened onClick={toggleMobile} size="sm"></Burger>
@@ -134,6 +137,14 @@ export default function AppLayout() {
             <Group>
               <Burger hiddenFrom="md" onClick={toggleMobile} opened={isOpenMobile} size="sm" />
               <Burger onClick={toggleDesktop} opened={isOpenDesktop} size="sm" visibleFrom="md" />
+            </Group>
+            <Group gap={6}>
+              <ActionIcon size="lg" variant="subtle" color="gray">
+                <IconBell size={20} />
+              </ActionIcon>
+              <ActionIcon size="lg" variant="subtle" color="gray" onClick={() => toggleColorScheme()}>
+                { colorScheme === 'light' ? <IconSunFilled size={20} /> : <IconMoonFilled size={20} /> }
+              </ActionIcon>
             </Group>
           </Group>
         </AppShell.Header>

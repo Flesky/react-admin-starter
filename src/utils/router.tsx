@@ -1,9 +1,11 @@
 import { type RouteObject, createBrowserRouter } from 'react-router-dom'
 import type { TablerIcon } from '@tabler/icons-react'
-import { IconDatabase } from '@tabler/icons-react'
+import { IconDatabase, IconForms } from '@tabler/icons-react'
+
 import AppLayout from '@/pages/app/layout.tsx'
 import Index from '@/pages/app'
-import KitchenSink from '@/pages/app/table/kitchen-sink.tsx'
+import Table from '@/pages/app/table'
+import Forms from '@/pages/app/forms'
 
 interface NavLinkParent {
   label: string
@@ -53,6 +55,11 @@ export const navbarLinks: NavLinkItem[] = [
   //   ],
   // },
   {
+    label: 'Forms',
+    icon: IconForms,
+    link: '/forms',
+  },
+  {
     label: 'Table',
     icon: IconDatabase,
     link: '/table',
@@ -85,12 +92,16 @@ export const routes: RouteObject[] = [
       {
         path: '/',
         element: <Index />,
-
+      },
+      {
+        path: 'forms',
+        element: <Forms />,
       },
       {
         path: 'table',
-        element: <KitchenSink />,
+        element: <Table />,
       },
+
       // {
       //   path: 'rbac',
       //   children: [

@@ -2,11 +2,12 @@ import { useQuery } from '@tanstack/react-query'
 import { Anchor, Avatar, Fieldset, Group, Select, Stack, Switch, Text } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import AppTable from '@/components/app/AppTable.tsx'
-import useProTable from '@/hooks/useProTable.ts'
-import { getUsers, users } from '@/utils/mock.ts'
+import useTableFeatures from '@/hooks/useTableFeatures.ts'
+import users from '@/assets/json/mockData.json'
 import AppPageContainer from '@/components/app/AppPageContainer.tsx'
+import { GET } from '@/utils/mockData'
 
-export default function KitchenSink() {
+export default function Table() {
   const form = useForm({
     initialValues: {
       data: true,
@@ -17,8 +18,8 @@ export default function KitchenSink() {
     },
   })
 
-  // @ts-expect-error tableQuery is dynamically toggled
-  const { tableProvider, tableQuery, sorting, pagination, globalFilter } = useProTable({
+  // @ts-expect-error tableQuery is dynamically toggled in this example
+  const { tableProvider, tableQuery, sorting, pagination, globalFilter } = useTableFeatures({
     manual: form.getValues().manual,
     pagination: true,
     sorting: true,
@@ -30,30 +31,14 @@ export default function KitchenSink() {
     queryKey: ['table/advanced', form.getValues().data, form.getValues().manual, tableQuery],
     queryFn: async () => {
       await new Promise(resolve => setTimeout(resolve, 800 * Math.random()))
-      const { pageIndex, pageSize } = pagination
-
       if (!form.getValues().data) {
-        return {
-          data: [],
-          total: 0,
-        }
+        return { data: [], total: 0 }
+      }
+      if (!form.getValues().manual) {
+        return { data: users, total: users.length }
       }
 
-      if (form.getValues().manual) {
-        return getUsers({
-          pageIndex,
-          pageSize,
-          sortColumn: sorting[0]?.id,
-          sortDirection: sorting[0]?.desc ? 'desc' : 'asc',
-          globalFilter,
-        })
-      }
-      else {
-        return getUsers({
-          pageIndex: 0,
-          pageSize: users.length,
-        })
-      }
+      return GET({ ...pagination, globalFilter, ...(sorting.length ? { sortColumn: sorting[0].id, sortIsAscending: !sorting[0].desc } : {}) })
     },
   })
 
@@ -92,15 +77,19 @@ export default function KitchenSink() {
         renderExpandedRow={form.getValues().rowExpansion
           ? profile => (
             <Group>
-              <Text size="sm">{profile.job.email}</Text>
-              <Text size="sm">{profile.job.type}</Text>
+              <Text size="sm">{profile.company.email}</Text>
+              <Text size="sm">{profile.company.title}</Text>
             </Group>
           )
           : undefined}
         columns={[
           {
-            header: 'Employee Profile',
+            header: 'Account Information',
             columns: [
+              {
+                header: 'ID',
+                accessorKey: 'id',
+              },
               {
                 header: 'Name',
                 accessorKey: 'name',
@@ -112,26 +101,8 @@ export default function KitchenSink() {
                 ),
               },
               {
-                header: 'Birthdate',
-                accessorKey: 'birthdate',
-                cell: ({ cell }) => new Date(cell.getValue()).toLocaleDateString(),
-              },
-              {
-                header: 'Address',
-                accessorKey: 'address',
-              },
-            ],
-          },
-          {
-            header: 'Work Information',
-            columns: [
-              {
-                header: 'Title',
-                accessorKey: 'job.type',
-              },
-              {
                 header: 'Email',
-                accessorKey: 'job.email',
+                accessorKey: 'company.email',
                 cell: ({ cell }) => (
                   <Anchor
                     href={
@@ -143,6 +114,28 @@ export default function KitchenSink() {
                     {cell.getValue()}
                   </Anchor>
                 ),
+              },
+              {
+                header: 'Address',
+                accessorKey: 'address',
+              },
+              {
+                header: 'Status',
+                accessorKey: 'account_status',
+              },
+            ],
+          },
+          {
+            header: 'Job Profile',
+            columns: [
+              {
+                header: 'Job title',
+                accessorKey: 'company.title',
+              },
+              {
+                header: 'Start date',
+                accessorKey: 'company.start_date',
+                cell: ({ row }) => new Date(row.original.company.start_date).toLocaleDateString(),
               },
             ],
           },
