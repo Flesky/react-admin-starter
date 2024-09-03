@@ -48,7 +48,7 @@ export default function Forms() {
       return await new Promise(resolve => setTimeout(resolve, 1000))
     },
     onMutate: () => notifyAsync({ message: 'Creating user...' }),
-    onSuccess: (_, __, { success }) => {
+    onSuccess: (_data, _variables, { success }) => {
       success({ message: 'User created successfully' })
       close()
     },
