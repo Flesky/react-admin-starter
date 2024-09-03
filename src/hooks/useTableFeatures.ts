@@ -5,7 +5,7 @@ interface TableConfig {
   // If true, the table will assume that the data is managed (paginated, sorted, etc.) externally.
   manual?: boolean
 
-  // Pagination, sorting, and filters must be opted out if the server source doesn't support them.
+  // Pagination, sorting, and filters must be set to false if the server source doesn't support them.
   pagination?: boolean
   sorting?: boolean
   globalFilter?: boolean

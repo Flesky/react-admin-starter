@@ -50,12 +50,12 @@ interface Props<T extends RowData> {
   provider?: TableProvider
 }
 
-export default function AppTable<T extends RowData>({ data, columns: _columns, rowCount, isLoading, renderExpandedRow, provider }: Props<T>) {
-  const columns = useMemo(() => {
-    const __columns: ColumnDef<T>[] = [..._columns]
+export default function AppTable<T extends RowData>({ data, columns, rowCount, isLoading, renderExpandedRow, provider }: Props<T>) {
+  const displayedColumns = useMemo(() => {
+    const _columns: ColumnDef<T>[] = [...columns]
 
     if (provider?._config.rowSelection === 'single') {
-      __columns.unshift({
+      _columns.unshift({
         id: 'selection',
         cell: ({ row }) => (
           <Radio
@@ -67,7 +67,7 @@ export default function AppTable<T extends RowData>({ data, columns: _columns, r
       })
     }
     else if (provider?._config.rowSelection === 'multiple') {
-      __columns.unshift({
+      _columns.unshift({
         id: 'selection',
         header: ({ table }) => (
           <Checkbox
@@ -89,7 +89,7 @@ export default function AppTable<T extends RowData>({ data, columns: _columns, r
     }
 
     if (renderExpandedRow) {
-      __columns.unshift({
+      _columns.unshift({
         id: 'expander',
         cell: ({ row }) => (
           <ActionIcon
@@ -104,12 +104,12 @@ export default function AppTable<T extends RowData>({ data, columns: _columns, r
       })
     }
 
-    return __columns
-  }, [_columns, provider?._config.rowSelection, renderExpandedRow])
+    return _columns
+  }, [columns, provider?._config.rowSelection, renderExpandedRow])
 
   const table = useReactTable<T>({
     data: data || [],
-    columns,
+    columns: displayedColumns,
     getRowId: row => row.id,
     rowCount: provider?._config.manual ? rowCount : undefined,
 
@@ -136,9 +136,7 @@ export default function AppTable<T extends RowData>({ data, columns: _columns, r
             placeholder="Quick search"
             rightSectionPointerEvents="all"
             rightSection={table.getState().globalFilter
-              ? (
-                <CloseButton aria-label="Clear input" onClick={() => table.setGlobalFilter('')} />
-                )
+              ? <CloseButton aria-label="Clear input" onClick={() => table.setGlobalFilter('')} />
               : <IconSearch size={16} />}
           />
         )}
@@ -167,7 +165,7 @@ export default function AppTable<T extends RowData>({ data, columns: _columns, r
                   {headerGroup.headers.map(header => (
                     <Table.Th fw={500} key={header.id} colSpan={header.colSpan} h={50}>
                       {!header.isPlaceholder && (
-                        <Group className="text-nowrap w-full flex-nowrap select-none">
+                        <Group className="w-full select-none flex-nowrap text-nowrap">
                           {flexRender(header.column.columnDef.header, header.getContext())}
                           {header.column.getCanSort()
                           && (
